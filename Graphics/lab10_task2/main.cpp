@@ -89,10 +89,12 @@ void Display_Objects(void)
 		glRotatef(rotate_y, 0, 1, 0);
 		glRotatef(rotate_z, 0, 0, 1);
 	}
+	
 	glColor3f(1, 0.78, 0.09); 
 	float mat_specular[] = { 1,1,1,1 };
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 128.0);
+	glScalef(1, 2, 1);
 	glutSolidCube(0.5);
 	glPopMatrix();
 
@@ -106,7 +108,7 @@ void Display_Objects(void)
 		glRotatef(rotate_z, 0, 0, 1);
 		glTranslatef(-1, 0.0, -1.0);
 	}
-	glTranslatef(0.25, 0.0, 1.0);
+	glTranslatef(0.25, -0.125, 1.0);
 	if (rotate_mode == 2)
 	{
 		glRotatef(rotate_x, 1, 0, 0);
@@ -114,6 +116,7 @@ void Display_Objects(void)
 		glRotatef(rotate_z, 0, 0, 1);
 	}
 	glColor3f(0.75, 0.75, 0.75);
+	glScalef(1, 1.5, 1);
 	glutSolidCube(0.5);
 	glPopMatrix();
 
@@ -127,7 +130,7 @@ void Display_Objects(void)
 		glRotatef(rotate_z, 0, 0, 1);
 		glTranslatef(-1, 0.0, -1.0);
 	}
-	glTranslatef(1.7, 0, 1.0);
+	glTranslatef(1.7, -0.25, 1.0);
 	if (rotate_mode == 2)
 	{
 		glRotatef(rotate_x, 1, 0, 0);
