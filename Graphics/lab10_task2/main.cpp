@@ -21,16 +21,23 @@ void Init_OpenGL()
 {
 	// set background color to Black    
 	glClearColor(0.0, 0.0, 0.0, 0.0);
-	
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_LIGHTING);
-	//float light0_diffuse[] = { 0.4, 0.7, 0.2 };
-	float light0_direction[] = { 0.0, 0.0, 1.0, 0.0 };
-	//glEnable(GL_LIGHT0);
-	//glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
-	//glLightfv(GL_LIGHT0, GL_POSITION, light0_direction);
-	//glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE); 
-	//glEnable(GL_NORMALIZE);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_COLOR_MATERIAL);
+	
+	glEnable(GL_LIGHT0);
+	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE); 
+	
+	float light_ambient[] = { 0.0,0.0,0.0,1.0 }; 
+	float light_diffuse[] = { 1.0,1.0,1.0,1.0 }; 
+	float light_specular[] = { 1.0,1.0,1.0,1.0 }; 
+	float light_position[] = { 0.0, 0.0, 0.0, 100.0 }; 
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient); 
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse); 
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+	glEnable(GL_NORMALIZE);
 }
 
 // Display_Objects() function    
@@ -82,8 +89,10 @@ void Display_Objects(void)
 		glRotatef(rotate_y, 0, 1, 0);
 		glRotatef(rotate_z, 0, 0, 1);
 	}
-	glColor3f(1, 0.78, 0.09);
-	glMaterialf(GL_FRONT, GL_SHININESS, 0.7 * 128);
+	glColor3f(1, 0.78, 0.09); 
+	float mat_specular[] = { 1,1,1,1 };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 128.0);
 	glutSolidCube(0.5);
 	glPopMatrix();
 
