@@ -11,6 +11,7 @@
 #include <random>
 #include <ctime>
 
+
 int width = 0, height = 0;
 int num = 0;
 float color_r = 0.8, color_g = 0.8, color_b = 0.8;
@@ -31,10 +32,10 @@ void reshape(int w, int h)
 	//matrix specifies the modelview transformation    
 	glMatrixMode(GL_MODELVIEW);
 	// again  load the identity of matrix    
-	//glLoadIdentity();
+	glLoadIdentity();
 	// gluLookAt() this function is used to specify the eye.    
 	// it is used to specify the coordinates to view objects from a specific position    
-	//gluLookAt(-0.3, 0.5, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	gluLookAt(-0.3, 0.5, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
 void draw_triangle()
@@ -110,7 +111,8 @@ void specialKeys(int key, int x, int y) {
 	case GLUT_KEY_PAGE_DOWN: rotate_z -= 5; break;
 	}
 	glutPostRedisplay();
-}
+}
+
 void Mouse(int button, int state, int x, int y) 
 {
 	if (state == GLUT_DOWN)
