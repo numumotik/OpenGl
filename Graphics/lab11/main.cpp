@@ -15,13 +15,13 @@ GLuint texture;
 void makeTextureImage()
 {
 	int width, height;
-	image = SOIL_load_image("container.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+	image = SOIL_load_image("texture.jpg", &width, &height, 0, SOIL_LOAD_RGB);
 	
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	SOIL_free_image_data(image);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	//SOIL_free_image_data(image);
+	//glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 float year = 0, day = 0;
