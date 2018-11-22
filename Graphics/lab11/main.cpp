@@ -20,10 +20,41 @@ void makeTextureImage()
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	//SOIL_free_image_data(image);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	//glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+#define checkImageWidth 64
+#define checkImageHeight 64
+GLubyte checkImage[checkImageHeight][checkImageWidth][4];
+GLuint texName;
+void makeCheckImage()
+{
+	int i, j, c;
+	for (i = 0; i<checkImageHeight; i++)
+	{
+		for (j = 0; j<checkImageWidth; j++)
+		{
+			c = (((i & 0x8) == 0) ^ ((j & 0x8) == 0)) * 255;
+			checkImage[i][j][0] = (GLubyte)c;
+			checkImage[i][j][1] = (GLubyte)c;
+			checkImage[i][j][2] = (GLubyte)c;
+			checkImage[i][j][3] = (GLubyte)255;
+		}
+	}
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glGenTextures(1, &texName);
+	glBindTexture(GL_TEXTURE_2D, texName);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, checkImageWidth, checkImageHeight,
+		0, GL_RGBA, GL_UNSIGNED_BYTE, checkImage);
+
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+}
 float year = 0, day = 0;
 float sun[3]{ 1, 1.0, 0 };
 float planet[3]{ 0, 1.0, 0 };
@@ -40,7 +71,8 @@ void init(void)
 	glEnable(GL_DEPTH_TEST);
 
 
-	makeTextureImage();	
+	//makeTextureImage();	
+	makeCheckImage();
 }
 //Изменение размеров окна
 void reshape(int w, int h)
@@ -60,8 +92,7 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glEnable(GL_TEXTURE_2D);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0, 0.0); glVertex3f(-10.0, -0, -10.0);
 	glTexCoord2f(0.0, 1.0); glVertex3f(-10.0, 0, 10.0);
