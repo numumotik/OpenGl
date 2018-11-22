@@ -31,11 +31,11 @@ void Init_OpenGL()
 	float light_ambient[] = { 0.0,0.0,0.0,1.0 }; 
 	float light_diffuse[] = { 1.0,1.0,1.0,1.0 }; 
 	float light_specular[] = { 1.0,1.0,1.0,1.0 }; 
-	float light_position[] = { 0.0, 0.0, 0.0, 100.0 }; 
+	//float light_position[] = { 0.0, 0.0, 0.0, 100.0 }; 
 	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient); 
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse); 
 	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	//glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
 	glEnable(GL_NORMALIZE);
 }
@@ -61,7 +61,7 @@ void Display_Objects(void)
 		glViewport(0, 0, width, height); 
 		glMatrixMode(GL_PROJECTION); 
 		glLoadIdentity(); 
-		glOrtho(-5, 5, -5, 5, -5, 5); 
+		glOrtho(-2, 2, -2, 2, -2, 2); 
 		glMatrixMode(GL_MODELVIEW); 
 		glLoadIdentity();
 	}
