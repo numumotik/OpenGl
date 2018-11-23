@@ -23,7 +23,6 @@ void makeTextureImage()
 	);
 }
 
-float sun[3]{ 1, 1.0, 0 };
 float camera_angle = 50;
 float car_angle = 0;
 int is_ahead = 0;
@@ -36,7 +35,7 @@ void init(void)
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_COLOR_MATERIAL);
 	
-	const GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
+	const GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1 };
 	const GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
 	const GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 	glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
@@ -71,7 +70,7 @@ void reshape(int w, int h)
 void drawLights()
 {
 	const GLfloat position[] = { 0,3,0,1 };
-	glColor3f(1.0, 1.0, 0.0);
+	glColor3f(1.0, 1.0, 1.0);
 
 	glPushMatrix();
 	glTranslatef(-5, 0, 0);
@@ -84,12 +83,14 @@ void drawLights()
 
 	glPushMatrix();
 	glDisable(GL_LIGHTING);
+	glColor3f(1.0, 1.0, 0.0);
 	glTranslatef(-5, 3, 0);
 	glutWireCube(0.1);
 	glTranslatef(5, 0, -10);
 	glutWireCube(0.1); 
 	glTranslatef(3, 0, 13);
 	glutWireCube(0.1);
+	glColor3f(1.0, 1.0, 1.0);
 	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
@@ -138,47 +139,94 @@ void setCamera()
 
 float x = 0; float z = 0;
 float SPEED = 0.1;
-
+float wheel_angle = 0;
+void drawWheel()
+{
+	glRotatef(90, 0, 1, 0);
+	glRotatef(wheel_angle, 0, 0, 1);
+	glutSolidCube(0.1);
+	glutSolidTorus(0.15, 0.25, 10, 10);
+}
 void drawCar()
 {
-	glPushMatrix();
-	glColor3f(1, 1, 0);
 	if (is_ahead)
 	{
 		x += SPEED * gr_sin(car_angle);
 		z += SPEED * gr_cos(car_angle);
 		is_ahead = 0;
+		wheel_angle += 5;
 	}
 	if (is_back)
 	{
 		x -= SPEED * gr_sin(car_angle);
 		z -= SPEED * gr_cos(car_angle);
 		is_back = 0;
+		wheel_angle -= 5;
 	}
 
-	glTranslatef(x, 0, z);
+	glPushMatrix();
+	glTranslatef(x, 0.9, z);
 	glRotatef(car_angle, 0, 1, 0);
+	
+	//корпус
+	glPushMatrix();
+		glColor3f(1, 0, 0);
+		glTranslatef(0, 0, 1.2);
+		glutSolidCube(0.5);
+		glTranslatef(0, 0, -1.2);
+	glScalef(1, 1, 2);
+	
 	glutSolidCube(1);
-	glColor3f(1, 0, 0);
-	glTranslatef(0, 0, 0.5);
-	glutSolidCube(0.5);
+	glPopMatrix();
+	
+	glTranslatef(0, -0.6, 0);
+	glColor3f(0.2, 0.2, 0.2);
+	//колеса
+	glPushMatrix();
+	glTranslatef(0.4, 0, 0.5);
+	drawWheel();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.4, 0, -0.5);
+	drawWheel();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.4, 0, -0.5);
+	drawWheel();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.4, 0, 0.5);
+	drawWheel();
+	glPopMatrix();
+
 	glPopMatrix();
 }
-
+void drawRoad()
+{
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glEnable(GL_TEXTURE_2D);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0, 0.0); glVertex3f(-20.0, -0, -20.0);
+	glTexCoord2f(0.0, 1.0); glVertex3f(-20.0, 0, 20.0);
+	glTexCoord2f(1.0, 1.0); glVertex3f(20.0, 0.0, 20);
+	glTexCoord2f(1.0, 0.0); glVertex3f(20.0, 0.0, -20.0);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+}
 // Отображение
 void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	setCamera();
 	drawLights();
-	glEnable(GL_TEXTURE_2D);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0.0, 0.0); glVertex3f(-10.0, -0, -10.0);
-	glTexCoord2f(0.0, 1.0); glVertex3f(-10.0, 0, 10.0);
-	glTexCoord2f(1.0, 1.0); glVertex3f(10.0, 0.0, 10);
-	glTexCoord2f(1.0, 0.0); glVertex3f(10.0, 0.0, -10.0);
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
+	drawRoad();
 	drawCar();
 	drawLamps();	
 	glutSwapBuffers();
