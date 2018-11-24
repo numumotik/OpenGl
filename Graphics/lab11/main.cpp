@@ -18,14 +18,18 @@ void makeTextureImage()
 {
 	texture = SOIL_load_OGL_texture
 	(
-		"texture.jpg",
+		"texture2.jpg",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
 	);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	texture2 = SOIL_load_OGL_texture
 	(
-		"texture2.jpg",
+		"car_texture.jpg",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
@@ -64,12 +68,6 @@ void init(void)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	makeTextureImage();	
 
 	//glEnable(GL_LIGHT0);
@@ -113,7 +111,7 @@ void drawLights()
 {
 	GLfloat no_mat[] = { 0.0,0.0,0.0,1.0 };
 	GLfloat mat_emission[] = { 1,1,1,0.0 };
-	const GLfloat position[] = { 0,3,0,1 };
+	const GLfloat position[] = { 0,4,0,1 };
 	glColor3f(1.0, 1.0, 1.0);
 
 	glPushMatrix();
@@ -130,7 +128,7 @@ void drawLights()
 			glMaterialfv(GL_FRONT, GL_EMISSION, mat_emission);
 	else glMaterialfv(GL_FRONT, GL_EMISSION, no_mat);
 	glColor3f(1.0, 1.0, 0.0);
-	glTranslatef(-5, 3, 0);
+	glTranslatef(-5, 4, 0);
 	glutSolidCube(0.1);
 	glTranslatef(5, 0, -10);
 	if (glIsEnabled(GL_LIGHT2))
@@ -154,19 +152,19 @@ void drawLamps()
 	glPushMatrix();
 	glTranslatef(-5, 0, 0);
 	glRotatef(-90, 1, 0, 0);
-	glutSolidCone(0.2, 3, 10, 10);
+	glutSolidCone(0.2, 4, 10, 10);
 	glPopMatrix();
 
 	glPushMatrix();
 	glTranslatef(0, 0, -10);
 	glRotatef(-90, 1, 0, 0);
-	glutSolidCone(0.2, 3, 10, 10);
+	glutSolidCone(0.2, 4, 10, 10);
 	glPopMatrix();
 
 	glPushMatrix();
 	glTranslatef(3, 0, 3);
 	glRotatef(-90, 1, 0, 0);
-	glutSolidCone(0.2, 3, 10, 10);
+	glutSolidCone(0.2, 4, 10, 10);
 	glPopMatrix();
 }
 
@@ -343,13 +341,14 @@ void drawCar()
 void drawRoad()
 {
 	glColor3f(1, 1, 1);
+
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
 	glNormal3f(0, 1, 0); glTexCoord2f(0.0, 0.0); glVertex3f(-40.0, -0, -40.0);
-	glNormal3f(0, 1, 0); glTexCoord2f(0.0, 1.0); glVertex3f(-40.0, 0, 40.0);
-	glNormal3f(0, 1, 0); glTexCoord2f(1.0, 1.0); glVertex3f(40.0, 0.0, 40);
-	glNormal3f(0, 1, 0); glTexCoord2f(1.0, 0.0); glVertex3f(40.0, 0.0, -40.0);
+	glNormal3f(0, 1, 0); glTexCoord2f(0.0, 10.0); glVertex3f(-40.0, 0, 40.0);
+	glNormal3f(0, 1, 0); glTexCoord2f(10.0, 10.0); glVertex3f(40.0, 0.0, 40);
+	glNormal3f(0, 1, 0); glTexCoord2f(10.0, 0.0); glVertex3f(40.0, 0.0, -40.0);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 }
@@ -468,7 +467,7 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowSize(800, 800);
 	glutInitWindowPosition(10, 10);
-	glutCreateWindow("Planetary System");
+	glutCreateWindow("Lab 11");
 	init();
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
