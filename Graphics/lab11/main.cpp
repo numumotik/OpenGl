@@ -12,6 +12,8 @@
 
 unsigned char* image;
 GLuint texture;
+GLuint texture2;
+
 void makeTextureImage()
 {
 	texture = SOIL_load_OGL_texture
@@ -21,9 +23,18 @@ void makeTextureImage()
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
 	);
+	texture2 = SOIL_load_OGL_texture
+	(
+		"texture2.jpg",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+	);
 }
 
 float camera_angle = 50;
+float camera_pos = 5;
+float camera_rad = 10;
 float car_angle = 0;
 int is_ahead = 0;
 int is_back = 0;
@@ -53,7 +64,14 @@ void init(void)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	makeTextureImage();	
+
 }
 
 // Изменение размеров окна
@@ -82,7 +100,7 @@ void drawLights()
 	glPopMatrix();
 
 	glPushMatrix();
-	glDisable(GL_LIGHTING);
+	//glDisable(GL_LIGHTING);
 	glColor3f(1.0, 1.0, 0.0);
 	glTranslatef(-5, 3, 0);
 	glutWireCube(0.1);
@@ -91,7 +109,7 @@ void drawLights()
 	glTranslatef(3, 0, 13);
 	glutWireCube(0.1);
 	glColor3f(1.0, 1.0, 1.0);
-	glEnable(GL_LIGHTING);
+	//glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -132,10 +150,55 @@ void setCamera()
 {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	const double x = 10 * gr_cos(camera_angle);
-	const double y = 10 * gr_sin(camera_angle);
-	gluLookAt(x, 5, y, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	const double x = camera_rad * gr_cos(camera_angle);
+	const double y = camera_rad * gr_sin(camera_angle);
+	gluLookAt(x, camera_pos, y, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
+
+void tryingTexturedCube(GLfloat size)
+{
+	glBindTexture(GL_TEXTURE_2D, texture2);
+	glEnable(GL_TEXTURE_2D);
+	glBegin(GL_QUADS);
+	// Front Face
+	glNormal3f(0, 0, 1); glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, -size, size);  // Bottom Left Of The Texture and Quad
+	glNormal3f(0, 0, 1); glTexCoord2f(1.0f, 0.0f); glVertex3f(size, -size, size);  // Bottom Right Of The Texture and Quad
+	glNormal3f(0, 0, 1); glTexCoord2f(1.0f, 1.0f); glVertex3f(size, size, size);  // Top Right Of The Texture and Quad
+	glNormal3f(0, 0, 1); glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, size, size);  // Top Left Of The Texture and Quad
+															 
+	// Back Face
+	glNormal3f(0, 0, -1); glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, -size, -size);  // Bottom Right Of The Texture and Quad
+	glNormal3f(0, 0, -1); glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, size, -size);  // Top Right Of The Texture and Quad
+	glNormal3f(0, 0, -1); glTexCoord2f(0.0f, 1.0f); glVertex3f(size, size, -size);  // Top Left Of The Texture and Quad
+	glNormal3f(0, 0, -1); glTexCoord2f(0.0f, 0.0f); glVertex3f(size, -size, -size);  // Bottom Left Of The Texture and Quad
+	
+	 // Top Face
+	glNormal3f(0, 1, 0); glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, size, -size);  // Top Left Of The Texture and Quad
+	glNormal3f(0, 1, 0); glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, size, size);  // Bottom Left Of The Texture and Quad
+	glNormal3f(0, 1, 0); glTexCoord2f(1.0f, 0.0f); glVertex3f(size, size, size);  // Bottom Right Of The Texture and Quad
+	glNormal3f(0, 1, 0); glTexCoord2f(1.0f, 1.0f); glVertex3f(size, size, -size);  // Top Right Of The Texture and Quad
+	
+	 // Bottom Face
+	glNormal3f(0, -1, 0); glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, -size, -size);  // Top Right Of The Texture and Quad
+	glNormal3f(0, -1, 0); glTexCoord2f(0.0f, 1.0f); glVertex3f(size, -size, -size);  // Top Left Of The Texture and Quad
+	glNormal3f(0, -1, 0); glTexCoord2f(0.0f, 0.0f); glVertex3f(size, -size, size);  // Bottom Left Of The Texture and Quad
+	glNormal3f(0, -1, 0); glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, -size, size);  // Bottom Right Of The Texture and Quad
+															  
+	// Right face
+	glNormal3f(1, 0, 0); glTexCoord2f(1.0f, 0.0f); glVertex3f(size, -size, -size);  // Bottom Right Of The Texture and Quad
+	glNormal3f(1, 0, 0); glTexCoord2f(1.0f, 1.0f); glVertex3f(size, size, -size);  // Top Right Of The Texture and Quad
+	glNormal3f(1, 0, 0); glTexCoord2f(0.0f, 1.0f); glVertex3f(size, size, size);  // Top Left Of The Texture and Quad
+	glNormal3f(1, 0, 0); glTexCoord2f(0.0f, 0.0f); glVertex3f(size, -size, size);  // Bottom Left Of The Texture and Quad
+	
+	// Left Face
+	glNormal3f(-1, 0, 0); glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, -size, -size);  // Bottom Left Of The Texture and Quad
+	glNormal3f(-1, 0, 0); glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, -size, size);  // Bottom Right Of The Texture and Quad
+	glNormal3f(-1, 0, 0); glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, size, size);  // Top Right Of The Texture and Quad
+	glNormal3f(-1, 0, 0); glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, size, -size);  // Top Left Of The Texture and Quad
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+}
+
 
 float x = 0; float z = 0;
 float SPEED = 0.1;
@@ -170,13 +233,13 @@ void drawCar()
 	
 	//корпус
 	glPushMatrix();
-		glColor3f(1, 0, 0);
+	glColor3f(1, 1, 1);
 		glTranslatef(0, 0, 1.2);
 		glutSolidCube(0.5);
 		glTranslatef(0, 0, -1.2);
 	glScalef(1, 1, 2);
-	
-	glutSolidCube(1);
+	tryingTexturedCube(0.5);
+	//glutSolidCube(1);
 	glPopMatrix();
 	
 	glTranslatef(0, -0.6, 0);
@@ -207,10 +270,6 @@ void drawCar()
 void drawRoad()
 {
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0, 0.0); glVertex3f(-20.0, -0, -20.0);
@@ -237,10 +296,12 @@ void specialKeys(int key, int x, int y)
 {
 	switch (key)
 	{
-		case GLUT_KEY_UP: is_ahead = 1; break;
-		case GLUT_KEY_DOWN: is_back = 1; break;
-		case GLUT_KEY_RIGHT: car_angle -= 5; break;
-		case GLUT_KEY_LEFT: car_angle += 5; break;
+		case GLUT_KEY_UP: camera_pos += 0.5; break;
+		case GLUT_KEY_DOWN: camera_pos -= 0.5; break;
+		case GLUT_KEY_RIGHT: camera_angle -= 0.5; break;
+		case GLUT_KEY_LEFT: camera_angle += 0.5; break;
+		case GLUT_KEY_PAGE_UP: camera_rad -= 0.5; break;
+		case GLUT_KEY_PAGE_DOWN: camera_rad += 0.5; break;
 		case GLUT_KEY_F1:
 			if (glIsEnabled(GL_LIGHT1))
 				glDisable(GL_LIGHT1);
@@ -255,12 +316,6 @@ void specialKeys(int key, int x, int y)
 			if (glIsEnabled(GL_LIGHT3))
 				glDisable(GL_LIGHT3);
 			else glEnable(GL_LIGHT3);
-			break;
-		case GLUT_KEY_PAGE_UP:
-			camera_angle += 1;
-			break;
-		case GLUT_KEY_PAGE_DOWN:
-			camera_angle -= 1;
 			break;
 	}
 	glutPostRedisplay();
@@ -280,11 +335,11 @@ void keyboard(unsigned char key, int x, int y)
 			break;
 		case 'a':
 		case 'A':
-			car_angle += 3;
+			car_angle += 5;
 			break;
 		case 'd':
 		case 'D':
-			car_angle -= 3;
+			car_angle -= 5;
 			break;
 		case 'w':
 		case 'W':
