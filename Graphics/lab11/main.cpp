@@ -72,24 +72,24 @@ void init(void)
 
 	//glEnable(GL_LIGHT0);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 15.0);
-	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1);
-	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.5);
-	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.2);
+	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 30.0);
+	//glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1);
+	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.1);
+	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.01);
 	
 	const GLfloat car_diffuse[] = { 1.0, 1.0, 0, 0 };
 	const GLfloat car_ambient[] = { 0.0, 0.0, 0.0, 1 };
 	const GLfloat car_specular[] = { 1.0, 1.0, 0, 1.0 };
 	glLightfv(GL_LIGHT4, GL_AMBIENT, car_ambient);
 	glLightfv(GL_LIGHT4, GL_DIFFUSE, car_diffuse);
-	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, 30.0);
+	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, 45.0);
 	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, 1.0);
 	glLightf(GL_LIGHT4, GL_CONSTANT_ATTENUATION, 0.5);
 	glLightf(GL_LIGHT4, GL_LINEAR_ATTENUATION, 0.3);
 	glLightf(GL_LIGHT4, GL_QUADRATIC_ATTENUATION, 0.1);
 	glLightfv(GL_LIGHT5, GL_AMBIENT, car_ambient);
 	glLightfv(GL_LIGHT5, GL_DIFFUSE, car_diffuse);
-	glLightf(GL_LIGHT5, GL_SPOT_CUTOFF, 30.0);
+	glLightf(GL_LIGHT5, GL_SPOT_CUTOFF, 45.0);
 	glLightf(GL_LIGHT5, GL_SPOT_EXPONENT,1.0);
 	glLightf(GL_LIGHT5, GL_CONSTANT_ATTENUATION, 0.5);
 	glLightf(GL_LIGHT5, GL_LINEAR_ATTENUATION, 0.3);
@@ -338,6 +338,7 @@ void drawCar()
 
 	glPopMatrix();
 }
+
 void drawRoad()
 {
 	glColor3f(1, 1, 1);
@@ -349,6 +350,28 @@ void drawRoad()
 	glNormal3f(0, 1, 0); glTexCoord2f(0.0, 10.0); glVertex3f(-40.0, 0, 40.0);
 	glNormal3f(0, 1, 0); glTexCoord2f(10.0, 10.0); glVertex3f(40.0, 0.0, 40);
 	glNormal3f(0, 1, 0); glTexCoord2f(10.0, 0.0); glVertex3f(40.0, 0.0, -40.0);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+}
+
+void _drawRoad()
+{
+	glColor3f(1, 1, 1);
+
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glEnable(GL_TEXTURE_2D);
+	glBegin(GL_QUADS);
+	
+	for (int i = -20; i <= 20; ++i)
+	{
+		for (int j = -20; j < 20; ++j)
+		{
+			glNormal3f(0, 1, 0); glTexCoord2f(0.0, 0.0); glVertex3f(i - 1, 0, j - 1);
+			glNormal3f(0, 1, 0); glTexCoord2f(0.0, 1.0); glVertex3f(i - 1, 0, j);
+			glNormal3f(0, 1, 0); glTexCoord2f(1.0, 1.0); glVertex3f(i, 0.0, j);
+			glNormal3f(0, 1, 0); glTexCoord2f(1.0, 0.0); glVertex3f(i, 0.0, j - 1);
+		}
+	}
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 }
@@ -380,7 +403,7 @@ void display(void)
 	setCamera();
 	drawLights();
 	drawRandomObstacles();
-	drawRoad();
+	_drawRoad();
 	drawCar();
 	drawLamps();	
 	glutSwapBuffers();
