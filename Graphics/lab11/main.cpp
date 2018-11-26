@@ -362,15 +362,23 @@ void _drawRoad()
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
 	
-	for (int i = -20; i <= 20; ++i)
+	int kk = 0;
+	float ff = 0.125;
+	for (float i = -40; i < 40; i += 0.25)
 	{
-		for (int j = -20; j < 20; ++j)
+		int k = 0;
+		float f = 0.125;
+		for (float j = -40; j < 40; j += 0.25)
 		{
-			glNormal3f(0, 1, 0); glTexCoord2f(0.0, 0.0); glVertex3f(i - 1, 0, j - 1);
-			glNormal3f(0, 1, 0); glTexCoord2f(0.0, 1.0); glVertex3f(i - 1, 0, j);
-			glNormal3f(0, 1, 0); glTexCoord2f(1.0, 1.0); glVertex3f(i, 0.0, j);
-			glNormal3f(0, 1, 0); glTexCoord2f(1.0, 0.0); glVertex3f(i, 0.0, j - 1);
+			glNormal3f(0, 1, 0); glTexCoord2f(ff - 0.125, f - 0.125); glVertex3f(i - 0.25, 0, j - 0.25);
+			glNormal3f(0, 1, 0); glTexCoord2f(ff - 0.125, f); glVertex3f(i - 0.25, 0, j);
+			glNormal3f(0, 1, 0); glTexCoord2f(ff, f); glVertex3f(i, 0.0, j);
+			glNormal3f(0, 1, 0); glTexCoord2f(ff, f - 0.125); glVertex3f(i, 0.0, j - 0.25);
+			++k;
+			f = k % 8 == 0 ? 0.125 : f + 0.125;
 		}
+		++kk;
+		ff = kk % 8 == 0 ? 0.125 : ff + 0.125;
 	}
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
