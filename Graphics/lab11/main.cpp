@@ -42,7 +42,7 @@ float camera_rad = 10;
 float car_angle = 0;
 int is_ahead = 0;
 int is_back = 0;
-
+int width = 0, height = 0;
 // Инициализация
 void init(void)
 {
@@ -96,15 +96,52 @@ void init(void)
 	glLightf(GL_LIGHT5, GL_QUADRATIC_ATTENUATION, 0.1);
 }
 
+double gr_cos(float angle) noexcept
+{
+	return cos(angle / 180 * 3.14);
+}
+
+double gr_sin(float angle) noexcept
+{
+	return sin(angle / 180 * 3.14);
+}
+
+
+void setCamera()
+{
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(60.0, width / height, 1.0, 100.0);
+	const double x = camera_rad * gr_cos(camera_angle);
+	const double y = camera_rad * gr_sin(camera_angle);
+	gluLookAt(x, camera_pos, y, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	GLfloat spot_position[] = { x, camera_pos, y , 1 };
+	GLfloat spot_direction[] = { -x, -camera_pos, -y };
+	float length = sqrt(x*x + camera_pos*camera_pos + y*y);
+	if (length != 0)
+	{
+		spot_direction[0] /= length;
+		spot_direction[1] /= length;
+		spot_direction[2] /= length;
+	}
+	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, spot_direction);
+	glLightfv(GL_LIGHT0, GL_POSITION, spot_position);
+
+}
 // Изменение размеров окна
 void reshape(int w, int h)
 {
+	width = w; height = h;
 	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
-	glMatrixMode(GL_PROJECTION);
+	/*glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(60.0, static_cast<GLfloat>(w) / static_cast<GLfloat>(h), 1.0, 100.0);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	glLoadIdentity();*/
+	setCamera();
 }
 
 void drawLights()
@@ -166,37 +203,6 @@ void drawLamps()
 	glRotatef(-90, 1, 0, 0);
 	glutSolidCone(0.2, 4, 10, 10);
 	glPopMatrix();
-}
-
-double gr_cos(float angle) noexcept
-{
-	return cos(angle / 180 * 3.14);
-}
-
-double gr_sin(float angle) noexcept
-{
-	return sin(angle / 180 * 3.14);
-}
-
-void setCamera()
-{
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	const double x = camera_rad * gr_cos(camera_angle);
-	const double y = camera_rad * gr_sin(camera_angle);
-	gluLookAt(x, camera_pos, y, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	
-	GLfloat spot_position[] = { x, camera_pos, y , 1};
-	GLfloat spot_direction[] = { -x, -camera_pos, -y };
-	float length = sqrt(x*x + camera_pos*camera_pos + y*y);
-	if (length != 0)
-	{
-		spot_direction[0] /= length;
-		spot_direction[1] /= length;
-		spot_direction[2] /= length;
-	}
-	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, spot_direction);
-	glLightfv(GL_LIGHT0, GL_POSITION, spot_position);
 }
 
 void tryingTexturedCube(GLfloat size)
@@ -261,15 +267,15 @@ void drawCarLights()
 	GLfloat spot_position[] = { 0, 0, 0, 1 };
 	GLfloat spot_direction[] = { 0, 0, 1};
 
-	glTranslatef(0, -0.15, 1.45);
+	glTranslated(0, -0.15, 1.45);
 	glColor3f(1, 1, 0);
-	glTranslatef(0.15, 0, 0);
+	glTranslated(0.15, 0, 0);
 	glLightfv(GL_LIGHT4, GL_POSITION, spot_position);
 	glLightfv(GL_LIGHT4, GL_SPOT_DIRECTION, spot_direction);
 	if (glIsEnabled(GL_LIGHT4))
 		glMaterialfv(GL_FRONT, GL_EMISSION, mat_emission);
 	glutSolidSphere(0.1, 10, 10);
-	glTranslatef(-0.3, 0, 0);
+	glTranslated(-0.3, 0, 0);
 	glLightfv(GL_LIGHT5, GL_POSITION, spot_position);
 	glLightfv(GL_LIGHT5, GL_SPOT_DIRECTION, spot_direction);
 	glutSolidSphere(0.1, 10, 10);
@@ -408,7 +414,7 @@ void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
-	setCamera();
+	//setCamera();
 	drawLights();
 	drawRandomObstacles();
 	_drawRoad();
@@ -452,6 +458,7 @@ void specialKeys(int key, int x, int y)
 			else glEnable(GL_LIGHT5);
 			break;
 	}
+	setCamera();
 	glutPostRedisplay();
 }
 
