@@ -109,15 +109,16 @@ double gr_sin(float angle) noexcept
 
 void setCamera()
 {
-	glMatrixMode(GL_PROJECTION);
+	/*glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(60.0, width / height, 1.0, 100.0);
+	gluPerspective(60.0, width / height, 1.0, 100.0);*/
+	glLoadIdentity();
 	const double x = camera_rad * gr_cos(camera_angle);
 	const double y = camera_rad * gr_sin(camera_angle);
 	gluLookAt(x, camera_pos, y, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	//glMatrixMode(GL_MODELVIEW);
+	//glLoadIdentity();
 	GLfloat spot_position[] = { x, camera_pos, y , 1 };
 	GLfloat spot_direction[] = { -x, -camera_pos, -y };
 	float length = sqrt(x*x + camera_pos*camera_pos + y*y);
@@ -136,11 +137,11 @@ void reshape(int w, int h)
 {
 	width = w; height = h;
 	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
-	/*glMatrixMode(GL_PROJECTION);
+	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(60.0, static_cast<GLfloat>(w) / static_cast<GLfloat>(h), 1.0, 100.0);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();*/
+	glLoadIdentity();
 	setCamera();
 }
 
@@ -367,24 +368,25 @@ void _drawRoad()
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
-	
+	float delta = 0.25;
+	float texture_delta = 0.125;
 	int kk = 0;
-	float ff = 0.125;
-	for (float i = -40; i < 40; i += 0.25)
+	float ff = texture_delta;
+	for (float i = -40; i < 40; i += delta)
 	{
 		int k = 0;
-		float f = 0.125;
-		for (float j = -40; j < 40; j += 0.25)
+		float f = texture_delta;
+		for (float j = -40; j < 40; j += delta)
 		{
-			glNormal3f(0, 1, 0); glTexCoord2f(ff - 0.125, f - 0.125); glVertex3f(i - 0.25, 0, j - 0.25);
-			glNormal3f(0, 1, 0); glTexCoord2f(ff - 0.125, f); glVertex3f(i - 0.25, 0, j);
+			glNormal3f(0, 1, 0); glTexCoord2f(ff - texture_delta, f - texture_delta); glVertex3f(i - delta, 0, j - delta);
+			glNormal3f(0, 1, 0); glTexCoord2f(ff - texture_delta, f); glVertex3f(i - delta, 0, j);
 			glNormal3f(0, 1, 0); glTexCoord2f(ff, f); glVertex3f(i, 0.0, j);
-			glNormal3f(0, 1, 0); glTexCoord2f(ff, f - 0.125); glVertex3f(i, 0.0, j - 0.25);
+			glNormal3f(0, 1, 0); glTexCoord2f(ff, f - texture_delta); glVertex3f(i, 0.0, j - delta);
 			++k;
-			f = k % 8 == 0 ? 0.125 : f + 0.125;
+			f = k % 8 == 0 ? texture_delta : f + texture_delta;
 		}
 		++kk;
-		ff = kk % 8 == 0 ? 0.125 : ff + 0.125;
+		ff = kk % 8 == 0 ? texture_delta : ff + texture_delta;
 	}
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
@@ -496,6 +498,7 @@ void keyboard(unsigned char key, int x, int y)
 			else glEnable(GL_LIGHT0);
 			break;
 	}
+	setCamera();
 	glutPostRedisplay();
 }
 
