@@ -94,6 +94,17 @@ void init(void)
 	glLightf(GL_LIGHT5, GL_CONSTANT_ATTENUATION, 0.5);
 	glLightf(GL_LIGHT5, GL_LINEAR_ATTENUATION, 0.3);
 	glLightf(GL_LIGHT5, GL_QUADRATIC_ATTENUATION, 0.1);
+
+	glEnable(GL_FOG);
+	{
+		GLfloat fogColor[4] = { 0.5,0.5,0.5,1 };
+		glFogi(GL_FOG_MODE, GL_LINEAR);
+		glFogfv(GL_FOG_COLOR, fogColor);
+		glFogf(GL_FOG_DENSITY, 0.35);
+		glHint(GL_FOG_HINT, GL_NICEST);
+		glFogf(GL_FOG_START, 5.0);
+		glFogf(GL_FOG_END, 50.0);
+	}
 }
 
 double gr_cos(float angle) noexcept
@@ -145,22 +156,42 @@ void reshape(int w, int h)
 	setCamera();
 }
 
+float x = 0; float z = 0;
+float SPEED = 0.1;
+float wheel_angle = 0;
+
 void drawLights()
 {
 	GLfloat no_mat[] = { 0.0,0.0,0.0,1.0 };
 	GLfloat mat_emission[] = { 1,1,1,0.0 };
-	const GLfloat position[] = { 0,4,0,1 };
+	GLfloat position[] = { 0,4,0,1 };
+	GLfloat car_mat_emission[] = { 1,1,0,0.0 };
 	glColor3f(1.0, 1.0, 1.0);
-
+	//lamps
 	glPushMatrix();
-	glTranslatef(-5, 0, 0);
-	glLightfv(GL_LIGHT1, GL_POSITION, position);
-	glTranslatef(5, 0, -10);
-	glLightfv(GL_LIGHT2, GL_POSITION, position);
-	glTranslatef(3, 0, 13);
-	glLightfv(GL_LIGHT3, GL_POSITION, position);
+		glTranslatef(-5, 0, 0);
+		glLightfv(GL_LIGHT1, GL_POSITION, position);
+		glTranslatef(5, 0, -10);
+		glLightfv(GL_LIGHT2, GL_POSITION, position);
+		glTranslatef(3, 0, 13);
+		glLightfv(GL_LIGHT3, GL_POSITION, position);
+	glPopMatrix();
+	//car lights
+	GLfloat spot_position[] = { 0, 0, 0, 1 };
+	GLfloat spot_direction[] = { 0, 0, 1 };
+	glPushMatrix();
+		glTranslatef(x, 0.9, z);
+		glRotatef(car_angle, 0, 1, 0);
+		glTranslated(0.15, -0.15, 1.45);
+		glColor3f(1, 1, 0);
+		glLightfv(GL_LIGHT4, GL_POSITION, spot_position);
+		glLightfv(GL_LIGHT4, GL_SPOT_DIRECTION, spot_direction);
+		glTranslated(-0.3, 0, 0);
+		glLightfv(GL_LIGHT5, GL_POSITION, spot_position);
+		glLightfv(GL_LIGHT5, GL_SPOT_DIRECTION, spot_direction);
 	glPopMatrix();
 
+	//lamps
 	glPushMatrix();
 	if (glIsEnabled(GL_LIGHT1))
 			glMaterialfv(GL_FRONT, GL_EMISSION, mat_emission);
@@ -180,6 +211,20 @@ void drawLights()
 	glutSolidCube(0.1);
 	glColor3f(1.0, 1.0, 1.0);
 	glMaterialfv(GL_FRONT, GL_EMISSION, no_mat);
+	glPopMatrix();
+
+	//car lights
+	glPushMatrix();
+		glTranslatef(x, 0.9, z);
+		glRotatef(car_angle, 0, 1, 0);
+		glTranslated(0.15, -0.15, 1.45);
+		glColor3f(1, 1, 0);
+		if (glIsEnabled(GL_LIGHT4))
+			glMaterialfv(GL_FRONT, GL_EMISSION, car_mat_emission);
+		glutSolidSphere(0.1, 10, 10);
+		glTranslated(-0.3, 0, 0);
+		glutSolidSphere(0.1, 10, 10);
+		glMaterialfv(GL_FRONT, GL_EMISSION, no_mat);
 	glPopMatrix();
 }
 
@@ -250,10 +295,6 @@ void tryingTexturedCube(GLfloat size)
 	glDisable(GL_TEXTURE_2D);
 }
 
-
-float x = 0; float z = 0;
-float SPEED = 0.1;
-float wheel_angle = 0;
 void drawWheel()
 {
 	glRotatef(90, 0, 1, 0);
@@ -261,87 +302,51 @@ void drawWheel()
 	glutSolidCube(0.1);
 	glutSolidTorus(0.15, 0.25, 10, 10);
 }
-void drawCarLights()
-{
-	GLfloat no_mat[] = { 0.0,0.0,0.0,1.0 };
-	GLfloat mat_emission[] = { 1,1,0,0.0 };
-	GLfloat spot_position[] = { 0, 0, 0, 1 };
-	GLfloat spot_direction[] = { 0, 0, 1};
-
-	glTranslated(0, -0.15, 1.45);
-	glColor3f(1, 1, 0);
-	glTranslated(0.15, 0, 0);
-	glLightfv(GL_LIGHT4, GL_POSITION, spot_position);
-	glLightfv(GL_LIGHT4, GL_SPOT_DIRECTION, spot_direction);
-	if (glIsEnabled(GL_LIGHT4))
-		glMaterialfv(GL_FRONT, GL_EMISSION, mat_emission);
-	glutSolidSphere(0.1, 10, 10);
-	glTranslated(-0.3, 0, 0);
-	glLightfv(GL_LIGHT5, GL_POSITION, spot_position);
-	glLightfv(GL_LIGHT5, GL_SPOT_DIRECTION, spot_direction);
-	glutSolidSphere(0.1, 10, 10);
-	glMaterialfv(GL_FRONT, GL_EMISSION, no_mat);
-}
 
 void drawCar()
 {
-	if (is_ahead)
-	{
-		x += SPEED * gr_sin(car_angle);
-		z += SPEED * gr_cos(car_angle);
-		is_ahead = 0;
-		wheel_angle += 5;
-	}
-	if (is_back)
-	{
-		x -= SPEED * gr_sin(car_angle);
-		z -= SPEED * gr_cos(car_angle);
-		is_back = 0;
-		wheel_angle -= 5;
-	}
-
 	glPushMatrix();
-	glTranslatef(x, 0.9, z);
-	glRotatef(car_angle, 0, 1, 0);
+		glTranslatef(x, 0.9, z);
+		glRotatef(car_angle, 0, 1, 0);
 	
 	//корпус
-	glPushMatrix();
-	glColor3f(0.8, 0.8, 0.8);
-		glTranslatef(0, 0, 1.2);
-		glutSolidCube(0.5);
-		glTranslatef(0, 0, -1.2);
-	glScalef(1, 1, 2);
-	tryingTexturedCube(0.5);
-	//glutSolidCube(1);
-	glPopMatrix();
+			glPushMatrix();
+				glColor3f(0.8, 0.8, 0.8);
+				glTranslatef(0, 0, 1.2);
+				glutSolidCube(0.5);
+				glTranslatef(0, 0, -1.2);
+				glScalef(1, 1, 2);
+				tryingTexturedCube(0.5);
+				//glutSolidCube(1);
+			glPopMatrix();
 	
-	glPushMatrix();
-	drawCarLights();
-	glPopMatrix();
+			//glPushMatrix();
+			//	drawCarLights();
+			//glPopMatrix();
 
 
-	glTranslatef(0, -0.6, 0);
-	glColor3f(0.2, 0.2, 0.2);
-	//колеса
-	glPushMatrix();
-	glTranslatef(0.4, 0, 0.5);
-	drawWheel();
-	glPopMatrix();
+		glTranslatef(0, -0.6, 0);
+		glColor3f(0.2, 0.2, 0.2);
+		//колеса
+			glPushMatrix();
+				glTranslatef(0.4, 0, 0.5);
+				drawWheel();
+			glPopMatrix();
 
-	glPushMatrix();
-	glTranslatef(0.4, 0, -0.5);
-	drawWheel();
-	glPopMatrix();
+			glPushMatrix();
+				glTranslatef(0.4, 0, -0.5);
+				drawWheel();
+			glPopMatrix();
 
-	glPushMatrix();
-	glTranslatef(-0.4, 0, -0.5);
-	drawWheel();
-	glPopMatrix();
+			glPushMatrix();
+				glTranslatef(-0.4, 0, -0.5);
+				drawWheel();
+			glPopMatrix();
 
-	glPushMatrix();
-	glTranslatef(-0.4, 0, 0.5);
-	drawWheel();
-	glPopMatrix();
+			glPushMatrix();
+				glTranslatef(-0.4, 0, 0.5);
+				drawWheel();
+			glPopMatrix();
 
 	glPopMatrix();
 }
@@ -416,7 +421,21 @@ void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
-	//setCamera();
+	if (is_ahead)
+	{
+		x += SPEED * gr_sin(car_angle);
+		z += SPEED * gr_cos(car_angle);
+		is_ahead = 0;
+		wheel_angle += 5;
+	}
+	if (is_back)
+	{
+		x -= SPEED * gr_sin(car_angle);
+		z -= SPEED * gr_cos(car_angle);
+		is_back = 0;
+		wheel_angle -= 5;
+	}
+
 	drawLights();
 	drawRandomObstacles();
 	_drawRoad();
@@ -496,6 +515,12 @@ void keyboard(unsigned char key, int x, int y)
 			if (glIsEnabled(GL_LIGHT0))
 				glDisable(GL_LIGHT0);
 			else glEnable(GL_LIGHT0);
+			break;
+		case'f':
+		case 'F':
+			if (glIsEnabled(GL_FOG))
+				glDisable(GL_FOG);
+			else glEnable(GL_FOG);
 			break;
 	}
 	setCamera();
