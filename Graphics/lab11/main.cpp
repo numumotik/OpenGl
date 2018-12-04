@@ -1,18 +1,26 @@
 #include<Windows.h>    
 // first include Windows.h header file which is required    
-#include<stdio.h>    
+#include<stdio.h>
 #include<gl/GL.h>   // GL.h header file    
 #include<gl/GLU.h> // GLU.h header file    
 #include<gl/glut.h>  // glut.h header file from freeglut\include\GL folder    
-#include<conio.h>    
-#include<stdio.h>    
-#include<math.h>    
-#include<string.h>    
+#include<conio.h>
+#include<math.h>
+#include<string.h>
 #include<SOIL.h>
 
 unsigned char* image;
 GLuint texture;
 GLuint texture2;
+
+const double pi = 3.14159265358979323846;
+float camera_angle = 50;
+float camera_pos = 5;
+float camera_rad = 10;
+float car_angle = 0;
+int is_ahead = 0;
+int is_back = 0;
+int width = 0, height = 0;
 
 void makeTextureImage()
 {
@@ -36,14 +44,6 @@ void makeTextureImage()
     );
 }
 
-float camera_angle = 50;
-float camera_pos = 5;
-float camera_rad = 10;
-float car_angle = 0;
-int is_ahead = 0;
-int is_back = 0;
-int width = 0, height = 0;
-
 // Инициализация
 void init(void)
 {
@@ -51,6 +51,7 @@ void init(void)
     glEnable(GL_NORMALIZE);
     glEnable(GL_COLOR_MATERIAL);
 
+    // Street lights
     const GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1 };
     const GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
     const GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
@@ -71,12 +72,13 @@ void init(void)
 
     makeTextureImage();
 
+    // Camera light
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
     glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 30.0);
-
     glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.1);
     glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.01);
 
+    // Car lights
     const GLfloat car_diffuse[] = { 1.0, 1.0, 0, 0 };
     const GLfloat car_ambient[] = { 0.0, 0.0, 0.0, 1 };
     const GLfloat car_specular[] = { 1.0, 1.0, 0, 1.0 };
@@ -109,12 +111,12 @@ void init(void)
 
 double gr_cos(float angle) noexcept
 {
-    return cos(angle / 180 * 3.14);
+    return cos(angle / 180 * pi);
 }
 
 double gr_sin(float angle) noexcept
 {
-    return sin(angle / 180 * 3.14);
+    return sin(angle / 180 * pi);
 }
 
 
@@ -122,12 +124,12 @@ void setCamera()
 {
     glLoadIdentity();
     const double x = camera_rad * gr_cos(camera_angle);
-    const double y = camera_rad * gr_sin(camera_angle);
-    gluLookAt(x, camera_pos, y, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    const double z = camera_rad * gr_sin(camera_angle);
+    gluLookAt(x, camera_pos, z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
-    const GLfloat spot_position[] = { x, camera_pos, y , 1 };
-    GLfloat spot_direction[] = { -x, -camera_pos, -y };
-    const float length = sqrt(x * x + static_cast<double>(camera_pos) * static_cast<double>(camera_pos) + y * y);
+    const GLfloat spot_position[] = { x, camera_pos, z , 1 };
+    GLfloat spot_direction[] = { -x, -camera_pos, -z };
+    const float length = sqrt(x * x + static_cast<double>(camera_pos) * static_cast<double>(camera_pos) + z * z);
     if (length != 0)
     {
         spot_direction[0] /= length;
@@ -466,11 +468,15 @@ void specialKeys(int key, int x, int y)
             break;
         case GLUT_KEY_F4:
             if (glIsEnabled(GL_LIGHT4))
+            {
                 glDisable(GL_LIGHT4);
-            else glEnable(GL_LIGHT4);
-            if (glIsEnabled(GL_LIGHT5))
                 glDisable(GL_LIGHT5);
-            else glEnable(GL_LIGHT5);
+            }
+            else
+            {
+                glEnable(GL_LIGHT4);
+                glEnable(GL_LIGHT5);
+            }
             break;
     }
     setCamera();
