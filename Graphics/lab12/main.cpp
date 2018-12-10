@@ -8,34 +8,24 @@
 #include<conio.h>
 #include<math.h>
 #include<string.h>
-//#include<SOIL.h>
+#include <SOIL.h>
 #include <vector>
 #include <glm/glm.hpp>
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <map>
 
 unsigned char* image;
 GLuint texture;
-std::vector<glm::vec3> vertices;
-std::vector<glm::vec2> uvs;
-std::vector<glm::vec3> normals;
-std::vector<unsigned int> vertex_indices;
+std::vector<glm::vec3> indexed_vertices;
+std::vector<glm::vec2> indexed_uvs;
+std::vector<glm::vec3> indexed_normals;
+std::vector<unsigned short> indices;
 GLuint vertexbuffer;
-GLint indices_count;
-
-// ID атрибута вершин
-GLint Attrib_vertex;
-//// ID атрибута цветов
-//GLint Attrib_color;
-//// ID юниформ матрицы проекции
-//GLint Unif_matrix;
-// ID Vertex Buffer Object
-GLuint VBO_vertex;
-//// ID Vertex Buffer Object
-//GLuint VBO_color;
-// ID VBO for element indices
-GLuint VBO_element;
+GLuint uvbuffer;
+GLuint normalbuffer;
+GLuint elementbuffer;
 
 const double pi = 3.14159265358979323846;
 int light_num = 0;
@@ -70,9 +60,76 @@ int model_num = 0;
 	);
 }*/
 
-void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<glm::vec3> & out_normals, std::vector<unsigned int> & vertex_indices)
+struct PackedVertex
 {
-    std::vector<unsigned int> /*vertex_indices, */uv_indices, normal_indices;
+    glm::vec3 position;
+    glm::vec2 uv;
+    glm::vec3 normal;
+    bool operator<(const PackedVertex that) const
+    {
+        return memcmp((void*)this, (void*)&that, sizeof(PackedVertex)) > 0;
+    };
+};
+
+bool getSimilarVertexIndex_fast(
+    PackedVertex & packed,
+    std::map<PackedVertex, unsigned short> & VertexToOutIndex,
+    unsigned short & result
+)
+{
+    std::map<PackedVertex, unsigned short>::iterator it = VertexToOutIndex.find(packed);
+    if (it == VertexToOutIndex.end())
+    {
+        return false;
+    }
+    else
+    {
+        result = it->second;
+        return true;
+    }
+}
+
+void indexVBO(
+    std::vector<glm::vec3> & in_vertices,
+    std::vector<glm::vec2> & in_uvs,
+    std::vector<glm::vec3> & in_normals,
+
+    std::vector<unsigned short> & out_indices,
+    std::vector<glm::vec3> & out_vertices,
+    std::vector<glm::vec2> & out_uvs,
+    std::vector<glm::vec3> & out_normals
+)
+{
+    std::map<PackedVertex, unsigned short> VertexToOutIndex;
+
+    // For each input vertex
+    for (unsigned int i = 0; i < in_vertices.size(); i++)
+    {
+        PackedVertex packed = { in_vertices[i], in_uvs[i], in_normals[i] };
+
+        // Try to find a similar vertex in out_XXXX
+        unsigned short index;
+        bool found = getSimilarVertexIndex_fast(packed, VertexToOutIndex, index);
+
+        if (found)
+        { // A similar vertex is already in the VBO, use it instead!
+            out_indices.push_back(index);
+        }
+        else
+        { // If not, it needs to be added in the output data.
+            out_vertices.push_back(in_vertices[i]);
+            out_uvs.push_back(in_uvs[i]);
+            out_normals.push_back(in_normals[i]);
+            unsigned short newindex = (unsigned short)out_vertices.size() - 1;
+            out_indices.push_back(newindex);
+            VertexToOutIndex[packed] = newindex;
+        }
+    }
+}
+
+void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<glm::vec3> & out_normals)
+{
+    std::vector<unsigned int> vertex_indices, uv_indices, normal_indices;
     std::vector<glm::vec3> temp_vertices;
     std::vector<glm::vec2> temp_uvs;
     std::vector<glm::vec3> temp_normals;
@@ -91,8 +148,7 @@ void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, st
             vertex.x *= 8;
             vertex.y *= 8;
             vertex.z *= 8;
-            //temp_vertices.push_back(vertex);
-            out_vertices.push_back(vertex);
+            temp_vertices.push_back(vertex);
         }
         else if (lineHeader == "vt")
         {
@@ -112,9 +168,9 @@ void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, st
             char slash;
             ss >> vertex_index[0] >> slash >> uv_index[0] >> slash >> normal_index[0] >> vertex_index[1] >> slash >> uv_index[1] >> slash >> normal_index[1] >> vertex_index[2] >> slash >> uv_index[2] >> slash >> normal_index[2];
 
-            vertex_indices.push_back(vertex_index[0] - 1);
-            vertex_indices.push_back(vertex_index[1] - 1);
-            vertex_indices.push_back(vertex_index[2] - 1);
+            vertex_indices.push_back(vertex_index[0]);
+            vertex_indices.push_back(vertex_index[1]);
+            vertex_indices.push_back(vertex_index[2]);
             uv_indices.push_back(uv_index[0]);
             uv_indices.push_back(uv_index[1]);
             uv_indices.push_back(uv_index[2]);
@@ -124,21 +180,21 @@ void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, st
         }
     }
 
-    //// For each vertex of each triangle
-    //for (unsigned int i = 0; i < vertex_indices.size(); i++)
-    //{
-    //    unsigned int vertexIndex = vertex_indices[i];
-    //    glm::vec3 vertex = temp_vertices[vertexIndex - 1];
-    //    out_vertices.push_back(vertex);
+    // For each vertex of each triangle
+    for (unsigned int i = 0; i < vertex_indices.size(); i++)
+    {
+        unsigned int vertexIndex = vertex_indices[i];
+        glm::vec3 vertex = temp_vertices[vertexIndex - 1];
+        out_vertices.push_back(vertex);
 
-    //    unsigned int uvIndex = uv_indices[i];
-    //    glm::vec2 uv = temp_uvs[uvIndex - 1];
-    //    out_uvs.push_back(uv);
+        unsigned int uvIndex = uv_indices[i];
+        glm::vec2 uv = temp_uvs[uvIndex - 1];
+        out_uvs.push_back(uv);
 
-    //    unsigned int normalIndex = normal_indices[i];
-    //    glm::vec3 normal = temp_normals[normalIndex - 1];
-    //    out_normals.push_back(normal);
-    //}
+        unsigned int normalIndex = normal_indices[i];
+        glm::vec3 normal = temp_normals[normalIndex - 1];
+        out_normals.push_back(normal);
+    }
 }
 
 // Èíèöèàëèçàöèÿ
@@ -147,6 +203,7 @@ void init(void)
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_CULL_FACE);
 
 	// Street lights
 	const GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1 };
@@ -169,10 +226,25 @@ void init(void)
 	glEnable(GL_LIGHT1);
 	//glEnable(GL_LIGHT2);
 	//glEnable(GL_LIGHT3);
-	//makeTextureImage();
 
-    // Read our.obj file
-    loadOBJ("african_head.obj", vertices, uvs, normals, vertex_indices);
+    texture = SOIL_load_OGL_texture
+    (
+        "african_head_SSS.jpg",
+        SOIL_LOAD_AUTO,
+        SOIL_CREATE_NEW_ID,
+        SOIL_FLAG_MIPMAPS | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+    );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    // Read our .obj file
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec2> uvs;
+    std::vector<glm::vec3> normals;
+    loadOBJ("african_head.obj", vertices, uvs, normals);
+    indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
 }
 
 double gr_cos(float angle) noexcept
@@ -248,27 +320,50 @@ void draw_simple_model()
 
 void draw_head()
 {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO_element);
-    // 1st attribute buffer : vertices
-    //glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(Attrib_vertex);
-    //glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_vertex);
-    //glVertexAttribPointer(
-    //    0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-    //    3,                  // size
-    //    GL_FLOAT,           // type
-    //    GL_FALSE,           // normalized?
-    //    0,                  // stride
-    //    (void*)0            // array buffer offset
-    //);
-    glVertexAttribPointer(Attrib_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glGenBuffers(1, &vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &uvbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &normalbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &elementbuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
+
+    glActiveTexture(GL_TEXTURE0);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // 1rst attribute buffer : vertices
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    // 2nd attribute buffer : UVs
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)(sizeof(float) * 3));
+
+    // 3rd attribute buffer : normals
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glNormalPointer(GL_FLOAT, 0, NULL); // Normal start position address
+
+    // Index buffer
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 
     // Draw the triangles!
-    //glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-    glDrawElements(GL_TRIANGLES, vertex_indices.size(), GL_UNSIGNED_INT, 0);
-    //glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(Attrib_vertex);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, 0);
 }
 
 void draw_model()
@@ -381,25 +476,18 @@ void mouseFunc(int button, int state, int x, int y)
         model_num = (model_num + 1) % 2;
         if (model_num != 0)
         {
-            // vertices
-            //glGenBuffers(1, &vertexbuffer);
-            //glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-            //glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-            glGenBuffers(1, &VBO_vertex);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO_vertex);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-
-
-            // indices
-            glGenBuffers(1, &VBO_element);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO_element);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertex_indices.size() * sizeof(unsigned int), &vertex_indices[0], GL_STATIC_DRAW);
         }
         else
         {
-            //glDeleteBuffers(1, &vertexbuffer);
-            glDeleteBuffers(1, &VBO_vertex);
-            glDeleteBuffers(1, &VBO_element);
+            glDeleteBuffers(1, &vertexbuffer);
+            glDeleteBuffers(1, &uvbuffer);
+            glDeleteBuffers(1, &normalbuffer);
+            glDeleteBuffers(1, &elementbuffer);
+            glDeleteTextures(1, &texture);
+
+            glDisableVertexAttribArray(0);
+            glDisableVertexAttribArray(1);
+            glDisableVertexAttribArray(2);
         }
     }
 }
