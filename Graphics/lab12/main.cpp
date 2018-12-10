@@ -280,7 +280,6 @@ void draw_model()
 	glColor3f(0.8, 0.8, 0.8);
 
 	//model here
-	//glutSolidCube(5);
 	if (model_num)
 		draw_head();
 	else
