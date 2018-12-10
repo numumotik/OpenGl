@@ -112,9 +112,9 @@ void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, st
             char slash;
             ss >> vertex_index[0] >> slash >> uv_index[0] >> slash >> normal_index[0] >> vertex_index[1] >> slash >> uv_index[1] >> slash >> normal_index[1] >> vertex_index[2] >> slash >> uv_index[2] >> slash >> normal_index[2];
 
-            vertex_indices.push_back(vertex_index[0]);
-            vertex_indices.push_back(vertex_index[1]);
-            vertex_indices.push_back(vertex_index[2]);
+            vertex_indices.push_back(vertex_index[0] - 1);
+            vertex_indices.push_back(vertex_index[1] - 1);
+            vertex_indices.push_back(vertex_index[2] - 1);
             uv_indices.push_back(uv_index[0]);
             uv_indices.push_back(uv_index[1]);
             uv_indices.push_back(uv_index[2]);
