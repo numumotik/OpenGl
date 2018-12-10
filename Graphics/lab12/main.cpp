@@ -1,6 +1,7 @@
 #include<Windows.h>    
 // first include Windows.h header file which is required    
 #include<stdio.h>
+#include "GL/glew.h"
 #include<gl/GL.h>   // GL.h header file    
 #include<gl/GLU.h> // GLU.h header file    
 #include<gl/glut.h>  // glut.h header file from freeglut\include\GL folder    
@@ -9,6 +10,11 @@
 #include<string.h>
 //#include<SOIL.h>
 #include <vector>
+#include <glm/glm.hpp>
+#include <string>
+#include <sstream>
+#include <fstream>
+
 unsigned char* image;
 GLuint texture;
 
@@ -86,7 +92,6 @@ double gr_sin(float angle) noexcept
 	return sin(angle / 180 * pi);
 }
 
-
 void setLight()
 {
 	double x = light_rad[0] *gr_cos(light_angle[0]);
@@ -148,9 +153,105 @@ void draw_simple_model()
 	glutSolidCube(5);
 }
 
+bool loadOBJ(const std::string & path, std::vector < glm::vec3 > & out_vertices, std::vector < glm::vec2 > & out_uvs, std::vector < glm::vec3 > & out_normals)
+{
+    std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
+    std::vector<glm::vec3> temp_vertices;
+    std::vector<glm::vec2> temp_uvs;
+    std::vector<glm::vec3> temp_normals;
+
+    std::ifstream infile(path);
+    std::string line;
+    while (getline(infile, line))
+    {
+        std::stringstream ss(line);
+        std::string lineHeader;
+        getline(ss, lineHeader, ' ');
+        if (lineHeader == "v")
+        {
+            glm::vec3 vertex;
+            ss >> vertex.x >> vertex.y >> vertex.z;
+            vertex.x *= 8;
+            vertex.y *= 8;
+            vertex.z *= 8;
+            temp_vertices.push_back(vertex);
+        }
+        else if (lineHeader == "vt")
+        {
+            glm::vec2 uv;
+            ss >> uv.x >> uv.y;
+            temp_uvs.push_back(uv);
+        }
+        else if (lineHeader == "vn")
+        {
+            glm::vec3 normal;
+            ss >> normal.x >> normal.y >> normal.z;
+            temp_normals.push_back(normal);
+        }
+        else if (lineHeader == "f")
+        {
+            unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+            char slash;
+            ss >> vertexIndex[0] >> slash >> uvIndex[0] >> slash >> normalIndex[0] >> vertexIndex[1] >> slash >> uvIndex[1] >> slash >> normalIndex[1] >> vertexIndex[2] >> slash >> uvIndex[2] >> slash >> normalIndex[2];
+
+            vertexIndices.push_back(vertexIndex[0]);
+            vertexIndices.push_back(vertexIndex[1]);
+            vertexIndices.push_back(vertexIndex[2]);
+            uvIndices.push_back(uvIndex[0]);
+            uvIndices.push_back(uvIndex[1]);
+            uvIndices.push_back(uvIndex[2]);
+            normalIndices.push_back(normalIndex[0]);
+            normalIndices.push_back(normalIndex[1]);
+            normalIndices.push_back(normalIndex[2]);
+        }
+    }
+
+    // For each vertex of each triangle
+    for (unsigned int i = 0; i < vertexIndices.size(); i++)
+    {
+        unsigned int vertexIndex = vertexIndices[i];
+        glm::vec3 vertex = temp_vertices[vertexIndex - 1];
+        out_vertices.push_back(vertex);
+
+        unsigned int uvIndex = uvIndices[i];
+        glm::vec2 uv = temp_uvs[uvIndex - 1];
+        out_uvs.push_back(uv);
+
+        unsigned int normalIndex = normalIndices[i];
+        glm::vec3 normal = temp_normals[normalIndex - 1];
+        out_normals.push_back(normal);
+    }
+    return true;
+}
+
 void draw_head()
 {
+    // Read our.obj file
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec2> uvs;
+    std::vector<glm::vec3> normals; // Won't be used at the moment. Or will it?
+    bool res = loadOBJ("african_head.obj", vertices, uvs, normals);
 
+    // ID Vertex Buffer Object
+    GLuint vertexbuffer;
+    glGenBuffers(1, &vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+
+    // 1st attribute buffer : vertices
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glVertexAttribPointer(
+        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+        3,                  // size
+        GL_FLOAT,           // type
+        GL_FALSE,           // normalized?
+        0,                  // stride
+        (void*)0            // array buffer offset
+    );
+    // Draw the triangles!
+    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glDisableVertexAttribArray(0);
 }
 
 void draw_model()
@@ -270,6 +371,7 @@ int main(int argc, char **argv)
 	glutInitWindowSize(800, 800);
 	glutInitWindowPosition(10, 10);
 	glutCreateWindow("Lab 12");
+    glewInit();
 	init();
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
