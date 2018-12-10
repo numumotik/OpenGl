@@ -1,4 +1,4 @@
-#include<Windows.h>    
+Ôªø#include<Windows.h>    
 // first include Windows.h header file which is required    
 #include<stdio.h>
 #include "GL/glew.h"
@@ -17,6 +17,25 @@
 
 unsigned char* image;
 GLuint texture;
+std::vector<glm::vec3> vertices;
+std::vector<glm::vec2> uvs;
+std::vector<glm::vec3> normals;
+std::vector<unsigned int> vertex_indices;
+GLuint vertexbuffer;
+GLint indices_count;
+
+// ID –∞—Ç—Ä–∏–±—É—Ç–∞ –≤–µ—Ä—à–∏–Ω
+GLint Attrib_vertex;
+//// ID –∞—Ç—Ä–∏–±—É—Ç–∞ —Ü–≤–µ—Ç–æ–≤
+//GLint Attrib_color;
+//// ID —é–Ω–∏—Ñ–æ—Ä–º –º–∞—Ç—Ä–∏—Ü—ã –ø—Ä–æ–µ–∫—Ü–∏–∏
+//GLint Unif_matrix;
+// ID Vertex Buffer Object
+GLuint VBO_vertex;
+//// ID Vertex Buffer Object
+//GLuint VBO_color;
+// ID VBO for element indices
+GLuint VBO_element;
 
 const double pi = 3.14159265358979323846;
 int light_num = 0;
@@ -51,7 +70,78 @@ int model_num = 0;
 	);
 }*/
 
-// »ÌËˆË‡ÎËÁ‡ˆËˇ
+void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<glm::vec3> & out_normals, std::vector<unsigned int> & vertex_indices)
+{
+    std::vector<unsigned int> /*vertex_indices, */uv_indices, normal_indices;
+    std::vector<glm::vec3> temp_vertices;
+    std::vector<glm::vec2> temp_uvs;
+    std::vector<glm::vec3> temp_normals;
+
+    std::ifstream infile(path);
+    std::string line;
+    while (getline(infile, line))
+    {
+        std::stringstream ss(line);
+        std::string lineHeader;
+        getline(ss, lineHeader, ' ');
+        if (lineHeader == "v")
+        {
+            glm::vec3 vertex;
+            ss >> vertex.x >> vertex.y >> vertex.z;
+            vertex.x *= 8;
+            vertex.y *= 8;
+            vertex.z *= 8;
+            //temp_vertices.push_back(vertex);
+            out_vertices.push_back(vertex);
+        }
+        else if (lineHeader == "vt")
+        {
+            glm::vec2 uv;
+            ss >> uv.x >> uv.y;
+            temp_uvs.push_back(uv);
+        }
+        else if (lineHeader == "vn")
+        {
+            glm::vec3 normal;
+            ss >> normal.x >> normal.y >> normal.z;
+            temp_normals.push_back(normal);
+        }
+        else if (lineHeader == "f")
+        {
+            unsigned int vertex_index[3], uv_index[3], normal_index[3];
+            char slash;
+            ss >> vertex_index[0] >> slash >> uv_index[0] >> slash >> normal_index[0] >> vertex_index[1] >> slash >> uv_index[1] >> slash >> normal_index[1] >> vertex_index[2] >> slash >> uv_index[2] >> slash >> normal_index[2];
+
+            vertex_indices.push_back(vertex_index[0]);
+            vertex_indices.push_back(vertex_index[1]);
+            vertex_indices.push_back(vertex_index[2]);
+            uv_indices.push_back(uv_index[0]);
+            uv_indices.push_back(uv_index[1]);
+            uv_indices.push_back(uv_index[2]);
+            normal_indices.push_back(normal_index[0]);
+            normal_indices.push_back(normal_index[1]);
+            normal_indices.push_back(normal_index[2]);
+        }
+    }
+
+    //// For each vertex of each triangle
+    //for (unsigned int i = 0; i < vertex_indices.size(); i++)
+    //{
+    //    unsigned int vertexIndex = vertex_indices[i];
+    //    glm::vec3 vertex = temp_vertices[vertexIndex - 1];
+    //    out_vertices.push_back(vertex);
+
+    //    unsigned int uvIndex = uv_indices[i];
+    //    glm::vec2 uv = temp_uvs[uvIndex - 1];
+    //    out_uvs.push_back(uv);
+
+    //    unsigned int normalIndex = normal_indices[i];
+    //    glm::vec3 normal = temp_normals[normalIndex - 1];
+    //    out_normals.push_back(normal);
+    //}
+}
+
+// √à√≠√®√∂√®√†√´√®√ß√†√∂√®√ø
 void init(void)
 {
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -80,6 +170,9 @@ void init(void)
 	//glEnable(GL_LIGHT2);
 	//glEnable(GL_LIGHT3);
 	//makeTextureImage();
+
+    // Read our.obj file
+    loadOBJ("african_head.obj", vertices, uvs, normals, vertex_indices);
 }
 
 double gr_cos(float angle) noexcept
@@ -132,7 +225,7 @@ void setLight()
 	}
 }
 
-// »ÁÏÂÌÂÌËÂ ‡ÁÏÂÓ‚ ÓÍÌ‡
+// √à√ß√¨√•√≠√•√≠√®√• √∞√†√ß√¨√•√∞√Æ√¢ √Æ√™√≠√†
 void reshape(int w, int h)
 {
 	width = w; height = h;
@@ -153,105 +246,29 @@ void draw_simple_model()
 	glutSolidCube(5);
 }
 
-bool loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<glm::vec3> & out_normals)
-{
-    std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
-    std::vector<glm::vec3> temp_vertices;
-    std::vector<glm::vec2> temp_uvs;
-    std::vector<glm::vec3> temp_normals;
-
-    std::ifstream infile(path);
-    std::string line;
-    while (getline(infile, line))
-    {
-        std::stringstream ss(line);
-        std::string lineHeader;
-        getline(ss, lineHeader, ' ');
-        if (lineHeader == "v")
-        {
-            glm::vec3 vertex;
-            ss >> vertex.x >> vertex.y >> vertex.z;
-            vertex.x *= 8;
-            vertex.y *= 8;
-            vertex.z *= 8;
-            temp_vertices.push_back(vertex);
-        }
-        else if (lineHeader == "vt")
-        {
-            glm::vec2 uv;
-            ss >> uv.x >> uv.y;
-            temp_uvs.push_back(uv);
-        }
-        else if (lineHeader == "vn")
-        {
-            glm::vec3 normal;
-            ss >> normal.x >> normal.y >> normal.z;
-            temp_normals.push_back(normal);
-        }
-        else if (lineHeader == "f")
-        {
-            unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
-            char slash;
-            ss >> vertexIndex[0] >> slash >> uvIndex[0] >> slash >> normalIndex[0] >> vertexIndex[1] >> slash >> uvIndex[1] >> slash >> normalIndex[1] >> vertexIndex[2] >> slash >> uvIndex[2] >> slash >> normalIndex[2];
-
-            vertexIndices.push_back(vertexIndex[0]);
-            vertexIndices.push_back(vertexIndex[1]);
-            vertexIndices.push_back(vertexIndex[2]);
-            uvIndices.push_back(uvIndex[0]);
-            uvIndices.push_back(uvIndex[1]);
-            uvIndices.push_back(uvIndex[2]);
-            normalIndices.push_back(normalIndex[0]);
-            normalIndices.push_back(normalIndex[1]);
-            normalIndices.push_back(normalIndex[2]);
-        }
-    }
-
-    // For each vertex of each triangle
-    for (unsigned int i = 0; i < vertexIndices.size(); i++)
-    {
-        unsigned int vertexIndex = vertexIndices[i];
-        glm::vec3 vertex = temp_vertices[vertexIndex - 1];
-        out_vertices.push_back(vertex);
-
-        unsigned int uvIndex = uvIndices[i];
-        glm::vec2 uv = temp_uvs[uvIndex - 1];
-        out_uvs.push_back(uv);
-
-        unsigned int normalIndex = normalIndices[i];
-        glm::vec3 normal = temp_normals[normalIndex - 1];
-        out_normals.push_back(normal);
-    }
-    return true;
-}
-
 void draw_head()
 {
-    // Read our.obj file
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec2> uvs;
-    std::vector<glm::vec3> normals; // Won't be used at the moment. Or will it?
-    bool res = loadOBJ("african_head.obj", vertices, uvs, normals);
-
-    // ID Vertex Buffer Object
-    GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO_element);
     // 1st attribute buffer : vertices
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glVertexAttribPointer(
-        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        3,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        0,                  // stride
-        (void*)0            // array buffer offset
-    );
+    //glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(Attrib_vertex);
+    //glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_vertex);
+    //glVertexAttribPointer(
+    //    0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+    //    3,                  // size
+    //    GL_FLOAT,           // type
+    //    GL_FALSE,           // normalized?
+    //    0,                  // stride
+    //    (void*)0            // array buffer offset
+    //);
+    glVertexAttribPointer(Attrib_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
     // Draw the triangles!
-    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-    glDisableVertexAttribArray(0);
+    //glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glDrawElements(GL_TRIANGLES, vertex_indices.size(), GL_UNSIGNED_INT, 0);
+    //glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(Attrib_vertex);
 }
 
 void draw_model()
@@ -272,7 +289,7 @@ void draw_model()
 	glPopMatrix();
 }
 
-// ŒÚÓ·‡ÊÂÌËÂ
+// √é√≤√Æ√°√∞√†√¶√•√≠√®√•
 void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -295,7 +312,7 @@ void display(void)
 	glutSwapBuffers();
 }
 
-// –Â‡ÍˆËˇ Ì‡ ÍÎ‡‚Ë‡ÚÛÛ
+// √ê√•√†√™√∂√®√ø √≠√† √™√´√†√¢√®√†√≤√≥√∞√≥
 void specialKeys(int key, int x, int y)
 {
 	switch (key)
@@ -361,7 +378,31 @@ void keyboard(unsigned char key, int x, int y)
 void mouseFunc(int button, int state, int x, int y)
 {
 	if (state == GLUT_DOWN)
-		model_num = (model_num + 1) % 2;
+    {
+        model_num = (model_num + 1) % 2;
+        if (model_num != 0)
+        {
+            // vertices
+            //glGenBuffers(1, &vertexbuffer);
+            //glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+            //glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+            glGenBuffers(1, &VBO_vertex);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO_vertex);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+
+
+            // indices
+            glGenBuffers(1, &VBO_element);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO_element);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertex_indices.size() * sizeof(unsigned int), &vertex_indices[0], GL_STATIC_DRAW);
+        }
+        else
+        {
+            //glDeleteBuffers(1, &vertexbuffer);
+            glDeleteBuffers(1, &VBO_vertex);
+            glDeleteBuffers(1, &VBO_element);
+        }
+    }
 }
 
 int main(int argc, char **argv)
