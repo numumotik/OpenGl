@@ -241,7 +241,7 @@ void init(void)
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
-    loadOBJ("african_head.obj"/*"diablo3_pose.obj"*//*"PenguinBaseMesh.obj"*/, vertices, uvs, normals);
+    loadOBJ("african_head.obj"/*"diablo3_pose.obj"*//*"PenguinBaseMesh.obj"*//*"cat.obj"*/, vertices, uvs, normals);
     indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
 }
 
