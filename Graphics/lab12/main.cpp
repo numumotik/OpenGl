@@ -160,6 +160,9 @@ void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, st
         {
             glm::vec3 normal;
             ss >> normal.x >> normal.y >> normal.z;
+            //normal.x *= -1;
+            //normal.y *= -1;
+            //normal.z *= -1;
             temp_normals.push_back(normal);
         }
         else if (lineHeader == "f")
@@ -229,17 +232,17 @@ void init(void)
 
     texture = SOIL_load_OGL_texture
     (
-        /*"african_head_SSS.jpg"*//*"f-texture.png"*/"red.jpg",
+        "african_head_SSS.jpg"/*"f-texture.png"*//*"red.jpg"*//*"Penguin Diffuse Color.png"*/,
         SOIL_LOAD_AUTO,
         SOIL_CREATE_NEW_ID,
-        SOIL_FLAG_MIPMAPS | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+        SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
     );
 
     // Read our .obj file
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
-    loadOBJ("african_head.obj"/*"diablo3_pose.obj"*/, vertices, uvs, normals);
+    loadOBJ("african_head.obj"/*"diablo3_pose.obj"*//*"PenguinBaseMesh.obj"*/, vertices, uvs, normals);
     indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
 }
 
@@ -346,7 +349,7 @@ void draw_head()
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)(sizeof(float) * 3));
+    glTexCoordPointer(2, GL_FLOAT, 0, 0);
 
     // 3rd attribute buffer : normals
     glEnableClientState(GL_NORMAL_ARRAY);
