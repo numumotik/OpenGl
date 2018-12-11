@@ -22,6 +22,7 @@ std::vector<glm::vec3> color_vertices;
 std::vector<unsigned short> indices;	
 GLuint vertexbuffer;
 GLuint elementbuffer;
+GLuint colorsbuffer;
 
 const double pi = 3.14159265358979323846;
 int light_num = 0;
@@ -147,7 +148,6 @@ void gen_colors(int size)
 	}
 }
 
-// Èíèöèàëèçàöèÿ
 void init(void)
 {
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -255,6 +255,10 @@ void _draw_model()
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
 
+	glGenBuffers(1, &colorsbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, colorsbuffer);
+	glBufferData(GL_ARRAY_BUFFER, color_vertices.size() * sizeof(glm::vec3), &color_vertices[0], GL_STATIC_DRAW);
+
 /*	glGenBuffers(1, &uvbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 	glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
@@ -271,6 +275,13 @@ void _draw_model()
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glEnableClientState(GL_COLOR_ARRAY);
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, colorsbuffer);
+	//wtf?
+	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	//glTexCoordPointer(2, GL_FLOAT, 0, 0);
 
 /*	// 2nd attribute buffer : UVs
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -299,7 +310,7 @@ void _draw_model()
 	glDeleteBuffers(1, &elementbuffer);
 
 	glDisableVertexAttribArray(0);
-	//glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(1);
 	//glDisableVertexAttribArray(2);
 }
 
