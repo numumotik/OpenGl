@@ -267,7 +267,7 @@ void setLight()
 		glPushMatrix();
 		glTranslatef(x, light_pos[0], z);
 		glLightfv(GL_LIGHT1, GL_POSITION, position);
-		glutWireCube(0.5f);
+		//glutWireCube(0.5f);
 		glPopMatrix();
 	}
 
@@ -279,7 +279,7 @@ void setLight()
 		//GLfloat position2[] = { x, light_pos[1], z, 1 };
 		glTranslatef(x, light_pos[1], z);
 		glLightfv(GL_LIGHT2, GL_POSITION, position);
-		glutWireCube(0.5f);
+		//glutWireCube(0.5f);
 		glPopMatrix();
 	}
 
@@ -291,7 +291,7 @@ void setLight()
 		//GLfloat position3[] = { x, light_pos[2], z, 1 };
 		glLightfv(GL_LIGHT3, GL_POSITION, position);
 		glTranslatef(x, light_pos[2], z);
-		glutWireCube(0.5f);
+		//glutWireCube(0.5f);
 		glPopMatrix();
 	}
 }
@@ -363,6 +363,7 @@ void draw_head()
 
     // Draw the triangles!
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, 0);
+	glDisable(GL_TEXTURE_2D);
 }
 
 void draw_model()
