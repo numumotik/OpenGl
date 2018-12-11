@@ -200,10 +200,10 @@ void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, st
     }
 }
 
-// Èíèöèàëèçàöèÿ
 void init(void)
 {
-	glClearColor(0.0, 0.0, 0.0, 0.0);
+	//glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClearColor(0.3, 0.3, 0.3, 1.0);
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_CULL_FACE);
@@ -266,7 +266,7 @@ void setLight()
 		glPushMatrix();
 		glTranslatef(x, light_pos[0], z);
 		glLightfv(GL_LIGHT1, GL_POSITION, position);
-		//glutWireCube(0.5f);
+		glutWireCube(0.5f);
 		glPopMatrix();
 	}
 
@@ -278,7 +278,7 @@ void setLight()
 		//GLfloat position2[] = { x, light_pos[1], z, 1 };
 		glTranslatef(x, light_pos[1], z);
 		glLightfv(GL_LIGHT2, GL_POSITION, position);
-		//glutWireCube(0.5f);
+		glutWireCube(0.5f);
 		glPopMatrix();
 	}
 
@@ -290,12 +290,11 @@ void setLight()
 		//GLfloat position3[] = { x, light_pos[2], z, 1 };
 		glLightfv(GL_LIGHT3, GL_POSITION, position);
 		glTranslatef(x, light_pos[2], z);
-		//glutWireCube(0.5f);
+		glutWireCube(0.5f);
 		glPopMatrix();
 	}
 }
 
-// Èçìåíåíèå ðàçìåðîâ îêíà
 void reshape(int w, int h)
 {
 	width = w; height = h;
@@ -310,11 +309,6 @@ void reshape(int w, int h)
 
 float x = 0; float z = 0; float y = 0;
 float SPEED = 0.1;
-
-void draw_simple_model()
-{
-	glutSolidCube(5);
-}
 
 void draw_head()
 {
@@ -363,6 +357,15 @@ void draw_head()
     // Draw the triangles!
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, 0);
 	glDisable(GL_TEXTURE_2D);
+	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &uvbuffer);
+	glDeleteBuffers(1, &normalbuffer);
+	glDeleteBuffers(1, &elementbuffer);
+	//glDeleteTextures(1, &texture);
+
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(2);
 }
 
 void draw_model()
@@ -373,16 +376,11 @@ void draw_model()
 
 	glColor3f(0.8, 0.8, 0.8);
 
-	//model here
-	//if (model_num)
-		draw_head();
-	//else
-	//	draw_simple_model();
+	draw_head();
 
 	glPopMatrix();
 }
 
-// Îòîáðàæåíèå
 void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -405,7 +403,6 @@ void display(void)
 	glutSwapBuffers();
 }
 
-// Ðåàêöèÿ íà êëàâèàòóðó
 void specialKeys(int key, int x, int y)
 {
 	switch (key)
@@ -468,36 +465,13 @@ void keyboard(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
-/*void mouseFunc(int button, int state, int x, int y)
-{
-	if (state == GLUT_DOWN)
-    {
-        model_num = (model_num + 1) % 2;
-        if (model_num != 0)
-        {
-        }
-        else
-        {
-            glDeleteBuffers(1, &vertexbuffer);
-            glDeleteBuffers(1, &uvbuffer);
-            glDeleteBuffers(1, &normalbuffer);
-            glDeleteBuffers(1, &elementbuffer);
-            glDeleteTextures(1, &texture);
-
-            glDisableVertexAttribArray(0);
-            glDisableVertexAttribArray(1);
-            glDisableVertexAttribArray(2);
-        }
-    }
-}*/
-
 void disable_all()
 {
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteBuffers(1, &uvbuffer);
 	glDeleteBuffers(1, &normalbuffer);
 	glDeleteBuffers(1, &elementbuffer);
-	glDeleteTextures(1, &texture);
+	//glDeleteTextures(1, &texture);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
@@ -517,8 +491,7 @@ int main(int argc, char **argv)
 	glutReshapeFunc(reshape);
 	glutSpecialFunc(specialKeys);
 	glutKeyboardFunc(keyboard);
-	//glutMouseFunc(mouseFunc);
 	glutMainLoop();
-	disable_all();
+	//disable_all();
 	return 0;
 }
