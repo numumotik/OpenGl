@@ -14,14 +14,13 @@
 #include <sstream>
 #include <fstream>
 #include <map>
-
+#include <ctime>
+#include <random>
 unsigned char* image;
-GLuint texture;
 std::vector<glm::vec3> indexed_vertices;
-std::vector<unsigned short> indices;
+std::vector<glm::vec3> color_vertices;
+std::vector<unsigned short> indices;	
 GLuint vertexbuffer;
-GLuint uvbuffer;
-GLuint normalbuffer;
 GLuint elementbuffer;
 
 const double pi = 3.14159265358979323846;
@@ -135,6 +134,18 @@ void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices)
 		out_vertices.push_back(vertex);
 	}
 }
+void gen_colors(int size)
+{
+	color_vertices.clear();
+	for (int i = 0; i < size; ++i)
+	{
+		glm::vec3 vertex;
+		vertex.x = rand() / RAND_MAX;
+		vertex.y = rand() / RAND_MAX;
+		vertex.z = rand() / RAND_MAX;
+		color_vertices.push_back(vertex);
+	}
+}
 
 // Èíèöèàëèçàöèÿ
 void init(void)
@@ -170,6 +181,7 @@ void init(void)
 	std::vector<glm::vec3> vertices;
 	loadOBJ("cue_obj.txt"/*"diablo3_pose.obj"*//*"PenguinBaseMesh.obj"*/, vertices);
 	indexVBO(vertices, indices, indexed_vertices);
+	gen_colors(vertices.size());
 }
 
 double gr_cos(float angle) noexcept
@@ -237,25 +249,20 @@ void reshape(int w, int h)
 float x = 0; float z = 0; float y = 0;
 float SPEED = 0.1;
 
-void draw_simple_model()
-{
-	glutSolidCube(5);
-}
-
-void draw_head()
+void _draw_model()
 {
 	glGenBuffers(1, &vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
 
-	glGenBuffers(1, &uvbuffer);
+/*	glGenBuffers(1, &uvbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 	glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
 
 	glGenBuffers(1, &normalbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
 	glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
-
+	*/
 	glGenBuffers(1, &elementbuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
@@ -265,7 +272,7 @@ void draw_head()
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-	// 2nd attribute buffer : UVs
+/*	// 2nd attribute buffer : UVs
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
@@ -279,12 +286,21 @@ void draw_head()
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glNormalPointer(GL_FLOAT, 0, NULL); // Normal start position address
 
-										// Index buffer
+	*/
+	// Index buffer
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 
 	// Draw the triangles!
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, 0);
 
+	glDeleteBuffers(1, &vertexbuffer);
+	//glDeleteBuffers(1, &uvbuffer);
+	//glDeleteBuffers(1, &normalbuffer);
+	glDeleteBuffers(1, &elementbuffer);
+
+	glDisableVertexAttribArray(0);
+	//glDisableVertexAttribArray(1);
+	//glDisableVertexAttribArray(2);
 }
 
 void draw_model()
@@ -295,7 +311,7 @@ void draw_model()
 
 	glColor3f(0.8, 0.8, 0.8);
 
-	draw_model();
+	_draw_model();
 
 	glPopMatrix();
 }
@@ -384,19 +400,6 @@ void keyboard(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
-void disable_all()
-{
-	glDeleteBuffers(1, &vertexbuffer);
-	glDeleteBuffers(1, &uvbuffer);
-	glDeleteBuffers(1, &normalbuffer);
-	glDeleteBuffers(1, &elementbuffer);
-	glDeleteTextures(1, &texture);
-
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(2);
-}
-
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
@@ -405,12 +408,12 @@ int main(int argc, char **argv)
 	glutInitWindowPosition(10, 10);
 	glutCreateWindow("Lab 12");
 	glewInit();
+	srand(time(0));
 	init();
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutSpecialFunc(specialKeys);
 	glutKeyboardFunc(keyboard);
 	glutMainLoop();
-	disable_all();
 	return 0;
 }
