@@ -36,7 +36,7 @@ float model_angle = 0;
 int is_ahead = 0;
 int is_back = 0;
 int width = 0, height = 0;
-int model_num = 0;
+//int model_num = 0;
 
 /*void makeTextureImage()
 {
@@ -237,7 +237,6 @@ void init(void)
         SOIL_CREATE_NEW_ID,
         SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
     );
-
     // Read our .obj file
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
@@ -335,7 +334,7 @@ void draw_head()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
 
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE0);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -375,10 +374,10 @@ void draw_model()
 	glColor3f(0.8, 0.8, 0.8);
 
 	//model here
-	if (model_num)
+	//if (model_num)
 		draw_head();
-	else
-		draw_simple_model();
+	//else
+	//	draw_simple_model();
 
 	glPopMatrix();
 }
@@ -469,7 +468,7 @@ void keyboard(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
-void mouseFunc(int button, int state, int x, int y)
+/*void mouseFunc(int button, int state, int x, int y)
 {
 	if (state == GLUT_DOWN)
     {
@@ -490,6 +489,19 @@ void mouseFunc(int button, int state, int x, int y)
             glDisableVertexAttribArray(2);
         }
     }
+}*/
+
+void disable_all()
+{
+	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &uvbuffer);
+	glDeleteBuffers(1, &normalbuffer);
+	glDeleteBuffers(1, &elementbuffer);
+	glDeleteTextures(1, &texture);
+
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(2);
 }
 
 int main(int argc, char **argv)
@@ -505,7 +517,8 @@ int main(int argc, char **argv)
 	glutReshapeFunc(reshape);
 	glutSpecialFunc(specialKeys);
 	glutKeyboardFunc(keyboard);
-	glutMouseFunc(mouseFunc);
+	//glutMouseFunc(mouseFunc);
 	glutMainLoop();
+	disable_all();
 	return 0;
 }
