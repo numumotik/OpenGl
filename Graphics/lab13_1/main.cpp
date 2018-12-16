@@ -7,13 +7,14 @@
 #include<gl/glut.h>  // glut.h header file from freeglut\include\GL folder    
 #include<conio.h>
 #include<math.h>
-#include<string.h>
+#include<string>
 #include <vector>
 #include <glm/glm.hpp>
 #include <string>
 #include <sstream>
 #include <fstream>
 #include <iostream>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 int width = 0, height = 0;
@@ -33,19 +34,37 @@ void checkOpenGLerror() {
 		std::cout << "OpenGl error! - " << gluErrorString(errCode);
 }
 
+std::string readfile(const char* path)
+{
+	std::string res = "";
+	std::ifstream file(path);
+	std::string line;
+	getline(file, res, '\0');
+	while (getline(file, line))
+	{
+		res += "\n " +line;
+	}
+	return res;
+}
+
 void initShader()
 {
-	const GLchar* vsSource = "attribute vec3 coord;\n" 
+	/*const GLchar* vsSource = "attribute vec3 coord;\n" 
 		"uniform mat4 matrix;\n" 
 		"uniform mat4 projection;\n"
 		" void main() {\n" 
 		" gl_Position = projection * matrix * vec4(coord, 1.0);\n" 
-		"}\n"; 
+		"}\n"; */
+	std::string readed = readfile("vertex.shader");
+	const char* vsSource = readed.c_str();
 
-	const GLchar* fsSource = "uniform vec4 color;"
+	/*const GLchar* fsSource = "uniform vec4 color;"
 		"void main() {\n" 
 		" gl_FragColor = color;\n" 
-		"}\n";
+		"}\n";*/
+	std::string readed2 = readfile("fragment.shader");
+	const char* fsSource = readed2.c_str();
+
 	GLuint vShader, fShader;
 	vShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vShader, 1, &vsSource, NULL);
