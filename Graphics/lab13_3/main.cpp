@@ -22,7 +22,7 @@ GLuint texture1, texture2;
 int width = 0, height = 0;
 int mode = 1;
 GLuint Program1, Program2, Program3;
-GLint Attrib_vertex, Unif_color;
+GLint Unif_tex_1, Unif_tex_2;
 GLuint VBO, VAO;
 
 void makeTextureImage()
@@ -95,49 +95,85 @@ void initShader1()
 		return;
 	}
 
-	/*const char* attr_name = "coord";
-	GLint Attrib_vertex = glGetAttribLocation(Program1, attr_name);
-	if (Attrib_vertex == -1)
-	{
-		std::cout << "could not bind attrib " << attr_name << std::endl;
-		return;
-	}
-	const char* attr_name2 = "color";
-	GLint Attrib_color = glGetAttribLocation(Program1, attr_name2);
-	if (Attrib_color == -1)
-	{
-		std::cout << "could not bind attrib " << attr_name2 << std::endl;
-		return;
-	}
-
-	const char* attr_name3 = "texCoord";
-	GLint Attrib_tex = glGetAttribLocation(Program1, attr_name3);
-	if (Attrib_tex == -1)
-	{
-		std::cout << "could not bind attrib " << attr_name3 << std::endl;
-		return;
-	}
-
-	
-	const char* color_name = "color";
-	GLint Unif_color = glGetUniformLocation(Program1, color_name);
-	if (Unif_color == -1)
-	{
-		std::cout << "could not bind uniform " << color_name << std::endl;
-		return;
-	}*/
-
 	checkOpenGLerror();
 }
 
 void initShader2()
 {
+	std::string readed = readfile("vertex.shader");
+	const char* vsSource = readed.c_str();
 
+	std::string readed2 = readfile("fragment2.shader");
+	const char* fsSource = readed2.c_str();
+
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
+	glCompileShader(vShader);
+
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
+	glCompileShader(fShader);
+
+	Program2 = glCreateProgram();
+	glAttachShader(Program2, vShader);
+	glAttachShader(Program2, fShader);
+	glLinkProgram(Program2);
+
+	int link_ok;
+	glGetProgramiv(Program2, GL_LINK_STATUS, &link_ok);
+	if (!link_ok)
+	{
+		std::cout << "error attach shaders \n";
+		return;
+	}
 }
 
 void initShader3()
 {
+	std::string readed = readfile("vertex.shader");
+	const char* vsSource = readed.c_str();
 
+	std::string readed2 = readfile("fragment3.shader");
+	const char* fsSource = readed2.c_str();
+
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
+	glCompileShader(vShader);
+
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
+	glCompileShader(fShader);
+
+	Program3 = glCreateProgram();
+	glAttachShader(Program3, vShader);
+	glAttachShader(Program3, fShader);
+	glLinkProgram(Program3);
+
+	int link_ok;
+	glGetProgramiv(Program3, GL_LINK_STATUS, &link_ok);
+	if (!link_ok)
+	{
+		std::cout << "error attach shaders \n";
+		return;
+	}
+
+	const char* tex1_name = "ourTexture1";
+	Unif_tex_1 = glGetUniformLocation(Program3, tex1_name);
+	if (Unif_tex_1 == -1)
+	{
+		std::cout << "could not bind uniform " << tex1_name << std::endl;
+		return;
+	}
+	const char* tex2_name = "ourTexture2";
+	Unif_tex_2 = glGetUniformLocation(Program3, tex2_name);
+	if (Unif_tex_2 == -1)
+	{
+		std::cout << "could not bind uniform " << tex2_name << std::endl;
+		return;
+	}
+	checkOpenGLerror();
 }
 
 void freeShader()
@@ -207,16 +243,35 @@ void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-
-	glUseProgram(Program1);
-
-	glBindTexture(GL_TEXTURE_2D, texture1);
+	glEnable(GL_TEXTURE_2D);
+	
+	if (mode == 1)
+	{
+		glUseProgram(Program1);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+	}
+	else if (mode == 2)
+	{
+		glUseProgram(Program2);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+	}
+	else if (mode == 3)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glUniform1i(Unif_tex_1, 0);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+		glUniform1i(Unif_tex_2, 1);
+	}
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 	
+
 	//фиг знает почему не работает
 	/*glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);*/
+
 	glUseProgram(0);
 	checkOpenGLerror();
 	glDisable(GL_TEXTURE_2D);
