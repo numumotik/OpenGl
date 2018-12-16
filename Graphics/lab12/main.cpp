@@ -15,6 +15,7 @@
 #include <sstream>
 #include <fstream>
 #include <map>
+#include <utility>
 
 unsigned char* image;
 GLuint texture;
@@ -26,6 +27,12 @@ GLuint vertexbuffer;
 GLuint uvbuffer;
 GLuint normalbuffer;
 GLuint elementbuffer;
+
+enum Object
+{
+    Head, Cat, Penguin, Diablo
+};
+Object object = Cat;
 
 const double pi = 3.14159265358979323846;
 int light_num = 0;
@@ -145,9 +152,14 @@ void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, st
         {
             glm::vec3 vertex;
             ss >> vertex.x >> vertex.y >> vertex.z;
-            vertex.x *= 8;
-            vertex.y *= 8;
-            vertex.z *= 8;
+            double scale = 8;
+            if (object == Cat)
+            {
+                scale = 0.5;
+            }
+            vertex.x *= scale;
+            vertex.y *= scale;
+            vertex.z *= scale;
             temp_vertices.push_back(vertex);
         }
         else if (lineHeader == "vt")
@@ -167,19 +179,14 @@ void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, st
         }
         else if (lineHeader == "f")
         {
-            unsigned int vertex_index[3], uv_index[3], normal_index[3];
+            unsigned int vertex_index, uv_index, normal_index;
             char slash;
-            ss >> vertex_index[0] >> slash >> uv_index[0] >> slash >> normal_index[0] >> vertex_index[1] >> slash >> uv_index[1] >> slash >> normal_index[1] >> vertex_index[2] >> slash >> uv_index[2] >> slash >> normal_index[2];
-
-            vertex_indices.push_back(vertex_index[0]);
-            vertex_indices.push_back(vertex_index[1]);
-            vertex_indices.push_back(vertex_index[2]);
-            uv_indices.push_back(uv_index[0]);
-            uv_indices.push_back(uv_index[1]);
-            uv_indices.push_back(uv_index[2]);
-            normal_indices.push_back(normal_index[0]);
-            normal_indices.push_back(normal_index[1]);
-            normal_indices.push_back(normal_index[2]);
+            while (ss >> vertex_index >> slash >> uv_index >> slash >> normal_index)
+            {
+                vertex_indices.push_back(vertex_index);
+                uv_indices.push_back(uv_index);
+                normal_indices.push_back(normal_index);
+            }
         }
     }
 
@@ -230,18 +237,41 @@ void init(void)
 	//glEnable(GL_LIGHT2);
 	//glEnable(GL_LIGHT3);
 
+    std::string tex_file, obj_file;
+    switch (object)
+    {
+        case Head:
+            tex_file = "african_head_SSS.jpg";
+            obj_file = "african_head.obj";
+            break;
+        case Cat:
+            tex_file = "Pallas_Cat_dif.jpg";
+            obj_file = "13578_Pallas_Cat_v1_L3.obj";
+            break;
+        case Penguin:
+            tex_file = "Penguin Diffuse Color.png";
+            obj_file = "PenguinBaseMesh.obj";
+            break;
+        case Diablo:
+            tex_file = "f-texture.png";
+            obj_file = "diablo3_pose.obj";
+            break;
+        default:
+            break;
+    }
     texture = SOIL_load_OGL_texture
     (
-        "african_head_SSS.jpg"/*"f-texture.png"*//*"red.jpg"*//*"Penguin Diffuse Color.png"*/,
+        tex_file.c_str(),
         SOIL_LOAD_AUTO,
         SOIL_CREATE_NEW_ID,
         SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
     );
+
     // Read our .obj file
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
-    loadOBJ("african_head.obj"/*"diablo3_pose.obj"*//*"PenguinBaseMesh.obj"*//*"cat.obj"*/, vertices, uvs, normals);
+    loadOBJ(obj_file, vertices, uvs, normals);
     indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
 }
 
@@ -355,7 +385,11 @@ void draw_head()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 
     // Draw the triangles!
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, 0);
+
+    if (object != Penguin && object != Cat)
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, 0);
+    else
+        glDrawElements(GL_QUADS, indices.size(), GL_UNSIGNED_SHORT, 0);
 	glDisable(GL_TEXTURE_2D);
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteBuffers(1, &uvbuffer);
