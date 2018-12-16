@@ -22,9 +22,9 @@ GLuint texture1, texture2;
 int width = 0, height = 0;
 int mode = 1;
 GLuint Program1, Program2, Program3;
-GLint Unif_tex_1, Unif_tex_2;
+GLint Unif_tex_1, Unif_tex_2, Unif_coef;
 GLuint VBO, VAO;
-
+float coef = 0.5f;
 void makeTextureImage()
 {
 	texture1 = SOIL_load_OGL_texture
@@ -173,6 +173,14 @@ void initShader3()
 		std::cout << "could not bind uniform " << tex2_name << std::endl;
 		return;
 	}
+
+	const char* coef_name = "coef";
+	Unif_coef = glGetUniformLocation(Program3, coef_name);
+	if (Unif_coef == -1)
+	{
+		std::cout << "could not bind uniform " << coef_name << std::endl;
+		return;
+	}
 	checkOpenGLerror();
 }
 
@@ -257,12 +265,14 @@ void display(void)
 	}
 	else if (mode == 3)
 	{
+		glUseProgram(Program3);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glUniform1i(Unif_tex_1, 0);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(Unif_tex_2, 1);
+		glUniform1f(Unif_coef, coef);
 	}
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 	
@@ -278,17 +288,55 @@ void display(void)
 	glutSwapBuffers();
 }
 
+void special(int key, int x, int y)
+{
+	switch (key)
+	{
+	case GLUT_KEY_F1: mode = 1;
+		break;
+	case GLUT_KEY_F2:
+		mode = 2;
+		break;
+	case GLUT_KEY_F3:
+		mode = 3;
+		break;
+	}
+	glutPostRedisplay();
+}
+
+
 void keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-	case '1': mode = 1;
+	case '1': coef = 0.1f;
 		break;
 	case '2':
-		mode = 2;
+		coef = 0.2f;
 		break;
 	case '3':
-		mode = 3;
+		coef = 0.3f;
+		break;
+	case '4':
+		coef = 0.4f;
+		break;
+	case '5':
+		coef = 0.5f;
+		break;
+	case '6':
+		coef = 0.6f;
+		break;
+	case '7':
+		coef = 0.7f;
+		break;
+	case '8':
+		coef = 0.8f;
+		break;
+	case '9':
+		coef = 0.9f;
+		break;
+	case '0':
+		coef = 0.0f;
 		break;
 	}
 	glutPostRedisplay();
@@ -321,6 +369,7 @@ int main(int argc, char **argv)
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);
+	glutSpecialFunc(special);
 	glutMainLoop();
 
 	freeShader();
