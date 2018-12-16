@@ -21,7 +21,7 @@ int width = 0, height = 0;
 GLuint Program;
 GLint Attrib_vertex, Unif_color, Unif_matrix, Unif_proj;
 
-float angle_x = 60.0f, angle_y = 1.0f, angle_z = 1.0f;
+float angle_x = 60.0f, angle_y = 60.0f, angle_z = 1.0f;
 int axis = 0;
 
 float scale_x = 1, scale_y = 1, scale_z = 1;
@@ -46,13 +46,17 @@ void initShader()
 		"void main() {\n" 
 		" gl_FragColor = color;\n" 
 		"}\n";
-	GLuint vShader, fShader;	vShader = glCreateShader(GL_VERTEX_SHADER);	glShaderSource(vShader, 1, &vsSource, NULL);
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
 	glCompileShader(vShader);
 
-	fShader = glCreateShader(GL_FRAGMENT_SHADER);	glShaderSource(fShader, 1, &fsSource, NULL);
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
 	glCompileShader(fShader);
 
-	Program = glCreateProgram();	glAttachShader(Program, vShader);
+	Program = glCreateProgram();
+	glAttachShader(Program, vShader);
 	glAttachShader(Program, fShader);
 	glLinkProgram(Program);
 
@@ -145,8 +149,8 @@ glm::mat4 rotate_matrix()
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f };
 	
-	glm::mat4 res = glm::matrixCompMult(m3, glm::matrixCompMult(m2, m1));
-	return m1;
+	glm::mat4 res = glm::matrixCompMult(m2, m1);
+	return res;
 }
 void display(void)
 {
@@ -178,13 +182,13 @@ void display(void)
 	
 	glUniformMatrix4fv(Unif_matrix, 1, GL_FALSE, &Matrix[0][0]);
 
-	/*glBegin(GL_QUADS);
+	glBegin(GL_QUADS);
 	glColor3f(1.0, 0.0, 0.0); glVertex2f(-0.5f, -0.5f);
 	glColor3f(0.0, 1.0, 0.0); glVertex2f(-0.5f, 0.5f);
 	glColor3f(0.0, 0.0, 1.0); glVertex2f(0.5f, 0.5f);
 	glColor3f(1.0, 1.0, 1.0); glVertex2f(0.5f, -0.5f);
 	glEnd();
-	*/
+	
 	//glutSolidCube(1);
 	//glutSolidTeapot(1);
 	glutSolidCube(1);
