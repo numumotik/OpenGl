@@ -32,7 +32,7 @@ enum Object
 {
     Head, Cat, Penguin, Diablo
 };
-Object object = Cat;
+Object object = Diablo;
 
 const double pi = 3.14159265358979323846;
 int light_num = 0;
@@ -407,6 +407,8 @@ void draw_model()
 	glPushMatrix();
 	glTranslatef(x, y, z);
 	glRotatef(model_angle, 0, 1, 0);
+    if (object == Cat)
+        glRotatef(-90, 1, 0, 0);
 
 	glColor3f(0.8, 0.8, 0.8);
 

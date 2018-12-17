@@ -110,9 +110,10 @@ void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices)
 		{
 			glm::vec3 vertex;
 			ss >> vertex.x >> vertex.y >> vertex.z;
-			vertex.x *= 8;
-			vertex.y *= 8;
-			vertex.z *= 8;
+            double scale = 0.1;
+			vertex.x *= scale;
+			vertex.y *= scale;
+			vertex.z *= scale;
 			temp_vertices.push_back(vertex);
 		}
 		else if (lineHeader == "f")
@@ -141,9 +142,9 @@ void gen_colors(int size)
 	for (int i = 0; i < size; ++i)
 	{
 		glm::vec3 vertex;
-		vertex.x = rand() / RAND_MAX;
-		vertex.y = rand() / RAND_MAX;
-		vertex.z = rand() / RAND_MAX;
+		vertex.x = rand() / 255 / 255.0;
+		vertex.y = rand() / 255 / 255.0;
+		vertex.z = rand() / 255 / 255.0;
 		color_vertices.push_back(vertex);
 	}
 }
@@ -179,7 +180,7 @@ void init(void)
 
 	// Read our .obj file
 	std::vector<glm::vec3> vertices;
-	loadOBJ("cue_obj.txt"/*"diablo3_pose.obj"*//*"PenguinBaseMesh.obj"*/, vertices);
+	loadOBJ(/*"cube_obj.txt"*/"rotate_obj.txt", vertices);
 	indexVBO(vertices, indices, indexed_vertices);
 	gen_colors(vertices.size());
 }
@@ -259,14 +260,6 @@ void _draw_model()
 	glBindBuffer(GL_ARRAY_BUFFER, colorsbuffer);
 	glBufferData(GL_ARRAY_BUFFER, color_vertices.size() * sizeof(glm::vec3), &color_vertices[0], GL_STATIC_DRAW);
 
-/*	glGenBuffers(1, &uvbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-	glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
-
-	glGenBuffers(1, &normalbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-	glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
-	*/
 	glGenBuffers(1, &elementbuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
@@ -279,25 +272,8 @@ void _draw_model()
 	glEnableClientState(GL_COLOR_ARRAY);
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, colorsbuffer);
-	//wtf?
-	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	//glTexCoordPointer(2, GL_FLOAT, 0, 0);
+    glColorPointer(3, GL_FLOAT, 0, 0);
 
-/*	// 2nd attribute buffer : UVs
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableVertexAttribArray(1);
-	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glTexCoordPointer(2, GL_FLOAT, 0, 0);
-
-	// 3rd attribute buffer : normals
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableVertexAttribArray(2);
-	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glNormalPointer(GL_FLOAT, 0, NULL); // Normal start position address
-
-	*/
 	// Index buffer
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 
@@ -305,13 +281,11 @@ void _draw_model()
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, 0);
 
 	glDeleteBuffers(1, &vertexbuffer);
-	//glDeleteBuffers(1, &uvbuffer);
-	//glDeleteBuffers(1, &normalbuffer);
+    glDeleteBuffers(1, &colorsbuffer);
 	glDeleteBuffers(1, &elementbuffer);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
-	//glDisableVertexAttribArray(2);
 }
 
 void draw_model()
