@@ -154,7 +154,7 @@ void init(void)
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 
 	// Street lights
 	const GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1 };
@@ -180,7 +180,7 @@ void init(void)
 
 	// Read our .obj file
 	std::vector<glm::vec3> vertices;
-	loadOBJ(/*"cube_obj.txt"*/"rotate_obj.txt", vertices);
+	loadOBJ("cube_obj.txt"/*"rotate_obj.txt"*/, vertices);
 	indexVBO(vertices, indices, indexed_vertices);
 	gen_colors(vertices.size());
 }
