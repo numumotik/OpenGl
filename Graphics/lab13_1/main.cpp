@@ -22,7 +22,7 @@ int width = 0, height = 0;
 GLuint Program;
 GLint Attrib_vertex, Unif_color, Unif_matrix, Unif_proj;
 
-float angle_x = 60.0f, angle_y = 60.0f, angle_z = 1.0f;
+float angle_x = 90.0f, angle_y = 90.0f, angle_z = 90.0f;
 int axis = 0;
 
 float scale_x = 1, scale_y = 1, scale_z = 1;
@@ -119,7 +119,7 @@ void initShader()
 		return;
 	}
 	checkOpenGLerror();
-}
+}	 
 
 void freeShader()
 {
@@ -179,16 +179,21 @@ void display(void)
 	static float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 	glUniform4fv(Unif_color, 1, red);
 	
-	glm::mat4 Matrix_projection = glm::perspective(60.0f, (float)width/(float)height, 1.0f, 100.0f);
+	//glm::mat4 Matrix_projection = glm::perspective(	60.0f, (float)width/(float)height, 1.0f, 100.0f);
 	/*glm::mat4 Matrix_projection = { 1.0f, 0.0f, 0.0f, 0.0f,
 											  0.0f, 1.0f, 0.0f, 0.0f,
 											  0.0f, 0.0f, 0.0f, -1 / (float)1000,
 											  0.0f, 0.0f, 0.0f, 1.0f };
 */
 
-	Matrix_projection = glm::translate(Matrix_projection, glm::vec3(0.0f, 0.0f, -1.0f));
-    //Matrix_projection = glm::rotate(Matrix_projection, 60.0f, glm::vec3(1.0f, 1.0f, 0.0f));
-	glUniformMatrix4fv(Unif_proj, 1, GL_FALSE, &Matrix_projection[0][0]);
+	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+	glm::mat4 View = glm::lookAt(
+		glm::vec3(0, 5, 10),
+		glm::vec3(0, 0, 0),
+		glm::vec3(0, 1, 0)
+	);
+	glm::mat4 MVP = Projection * View;
+	glUniformMatrix4fv(Unif_proj, 1, GL_FALSE, &MVP[0][0]);
 
 	glm::mat4 S = { scale_x, 0.0f,0.0f, 0.0f,
 					0.0f , scale_y, 0.0f, 0.0f ,
@@ -201,16 +206,16 @@ void display(void)
 	
 	glUniformMatrix4fv(Unif_matrix, 1, GL_FALSE, &Matrix[0][0]);
 
-	glBegin(GL_QUADS);
+	/*glBegin(GL_QUADS);
 	glColor3f(1.0, 0.0, 0.0); glVertex2f(-0.5f, -0.5f);
 	glColor3f(0.0, 1.0, 0.0); glVertex2f(-0.5f, 0.5f);
 	glColor3f(0.0, 0.0, 1.0); glVertex2f(0.5f, 0.5f);
 	glColor3f(1.0, 1.0, 1.0); glVertex2f(0.5f, -0.5f);
-	glEnd();
+	glEnd();*/
 	
-	//glutSolidCube(1);
-	//glutSolidTeapot(1);
 	glutSolidCube(1);
+	glutSolidTeapot(1);
+	//glutSolidCube(1);
 	glFlush();
 
 	glUseProgram(0);
