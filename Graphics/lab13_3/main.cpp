@@ -23,7 +23,8 @@ int width = 0, height = 0;
 int mode = 1;
 GLuint Program1, Program2, Program3;
 GLint Unif_tex_1, Unif_tex_2, Unif_coef;
-GLuint VBO, VAO;
+GLuint VBO, VAO,IBO;
+std::vector<GLushort> indices;
 float coef = 0.5f;
 void makeTextureImage()
 {
@@ -207,44 +208,57 @@ void reshape(int w, int h)
 
 void initBuffers()
 {
-	/*GLfloat vertices[] = {
+	GLfloat vertices[] = {
 		// Позиции          // Цвета             // Текстурные координаты
 		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Верхний правый
 		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Нижний правый
 		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // Нижний левый
 		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // Верхний левый
-	};*/
+	};
 
-	GLfloat vertices[] = { -0.5f, -0.5f, -1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+	/*GLfloat vertices[] = { -0.5f, -0.5f, -1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
 				 0.5f, -0.5f, -1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
 				 0.0f,  0.5f, -1.0f,   0.0f, 0.0f, 1.0f,   0.5f, 1.0f
-	};
-	glGenBuffers(1, &VBO);
+	};*/
+	
 	// 0. Копируем массив с вершинами в буфер OpenGL
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	indices.push_back(0);
+	indices.push_back(1);
+	indices.push_back(2);
+	indices.push_back(3);
+
 	// 1. Затем установим указатели на вершинные атрибуты
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+	/*glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
-
+	glEnableVertexAttribArray(2);*/
+	
+	glGenBuffers(1, &VBO);
 	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &IBO);
+
 	glBindVertexArray(VAO);
-	// 2. Копируем наш массив вершин в буфер для OpenGL
+	
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	//// 3. Устанавливаем указатели на вершинные атрибуты 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLushort), &indices[0], GL_STATIC_DRAW);
+	
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
 }
 
 void display(void)
@@ -274,14 +288,14 @@ void display(void)
 		glUniform1i(Unif_tex_2, 1);
 		glUniform1f(Unif_coef, coef);
 	}
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	//glDrawArrays(GL_QUADS, 0, 4);
 	
 
 	//фиг знает почему не работает
-	/*glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);*/
-
+	glBindVertexArray(VAO);
+	glDrawElements(GL_QUADS, 4,GL_UNSIGNED_SHORT, 0);
+	glBindVertexArray(0);
+	
 	glUseProgram(0);
 	checkOpenGLerror();
 	glDisable(GL_TEXTURE_2D);
