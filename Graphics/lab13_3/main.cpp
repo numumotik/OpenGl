@@ -291,7 +291,6 @@ void display(void)
 	//glDrawArrays(GL_QUADS, 0, 4);
 	
 
-	//фиг знает почему не работает
 	glBindVertexArray(VAO);
 	glDrawElements(GL_QUADS, 4,GL_UNSIGNED_SHORT, 0);
 	glBindVertexArray(0);

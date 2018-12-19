@@ -146,8 +146,8 @@ glm::mat4 rotate_matrix()
 	float cos = glm::sin(angle_x*3.14 / 180);
 	//OX
 	glm::mat4 m1 = { 1.0f,   0.0f,     0.0f,   0.0f,
-					0.0f,  cos,   sin,  0.0f,
-					0.0f,  -sin,  cos,  0.0f,
+					0.0f,  cos,   -sin,  0.0f,
+					0.0f,  sin,  cos,  0.0f,
 					 0.0f,   0.0f,     0.0f,   1.0f };
 
 	//OY
@@ -169,7 +169,7 @@ glm::mat4 rotate_matrix()
 		0.0f, 0.0f, 0.0f, 1.0f };
 	
 	glm::mat4 res = glm::matrixCompMult(m2, m1);
-	return res;
+	return m1;
 }
 void display(void)
 {
@@ -199,7 +199,7 @@ void display(void)
 					0.0f , scale_y, 0.0f, 0.0f ,
 					0.0f ,0.0f , scale_z, 0.0f ,
 						0.0f ,0.0f ,0.0f, 1.0f };
-
+	float a = angle_x * 3.14f / 180.0f;
 	glm::mat4 R = rotate_matrix();
 
 	glm::mat4 Matrix = glm::matrixCompMult(S, R);
@@ -213,9 +213,9 @@ void display(void)
 	glColor3f(1.0, 1.0, 1.0); glVertex2f(0.5f, -0.5f);
 	glEnd();*/
 	
-	glutSolidCube(1);
-	glutSolidTeapot(1);
 	//glutSolidCube(1);
+	//	glutSolidTeapot(1);
+	glutSolidCube(1);
 	glFlush();
 
 	glUseProgram(0);
