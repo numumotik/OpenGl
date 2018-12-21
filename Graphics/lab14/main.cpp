@@ -146,18 +146,13 @@ void initBuffers()
 {
 	GLfloat vertices[] = {
 		// Позиции          // normals             // Текстурные координаты
-		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Верхний правый
-		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Нижний правый
+		 0.5f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,   // Верхний правый
+		 0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,   // Нижний правый
 		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // Нижний левый
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // Верхний левый
+		-0.5f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f    // Верхний левый
 	};
 
-
-	indices.push_back(0);
-	indices.push_back(1);
-	indices.push_back(2);
-	indices.push_back(3);
-
+	indices.assign({ 0,1,2,3 });
 
 	glGenBuffers(1, &VBO);
 	glGenVertexArrays(1, &VAO);
