@@ -26,13 +26,22 @@ int width = 0, height = 0;
 //3 - с текстурами по модели ‘онга через вершинный шейдер
 //4 - с текстурами по модели ‘онга через фрагментный шейдер
 int mode = 1;
-GLuint Program1;
-GLint Unif_tex_1, Unif_tex_2, Unif_coef;
+GLuint Program1, Program2, Program3, Program4;
+GLint Unif1, Unif2;
 GLuint VBO, VAO, IBO;
 std::vector<GLushort> indices;
 
+//transform
+glm::mat4 model, viewProjection;
+glm::mat3 normaltr;
+float viewPosition[]{ 0,0,-5 };
+//light
 float light_angle = 0, light_pos = 5, light_rad = 10;
 glm::vec3 light{ 0, 5, 0 };
+glm::vec4 ambient{ 0.2f,0.2f,0.2f,1.0f };
+glm::vec4 diffuse{ 1.0f,1.0f,1.0f,1.0f };
+glm::vec4 specular{ 1.0f,1.0f,1.0f,1.0f };
+glm::vec3 attenuation{ 1.0f,0.0f,0.0f };
 
 void makeTextureImage()
 {
@@ -71,10 +80,10 @@ std::string readfile(const char* path)
 //без текстур по модели ‘онга через вершинный шейдер - интерпол€ци€ √уро
 void initShader1()
 {
-	std::string readed = readfile("vertex.shader");
+	std::string readed = readfile("vertex1.shader");
 	const char* vsSource = readed.c_str();
 
-	std::string readed2 = readfile("fragment.shader");
+	std::string readed2 = readfile("fragment13.shader");
 	const char* fsSource = readed2.c_str();
 
 	GLuint vShader, fShader;
@@ -96,6 +105,18 @@ void initShader1()
 	if (!link_ok)
 	{
 		std::cout << "error attach shaders \n";
+		GLchar infoLog[512];
+		GLint size;
+		glGetProgramInfoLog(Program1, 512, &size, infoLog);
+		std::cout << infoLog;
+		return;
+	}
+
+	Unif1 = glGetUniformLocation(Program1, "objColor");
+	if (Unif1 == -1)
+	{
+		std::cout << "could not bind uniform objColor(1)" << std::endl;
+		checkOpenGLerror();
 		return;
 	}
 
@@ -105,33 +126,141 @@ void initShader1()
 // без текстур по модели ‘онга через фрагментный шейдер - интерпол€ци€ ‘онга
 void initShader2()
 {
-	//todo
+	std::string readed = readfile("vertex24.shader");
+	const char* vsSource = readed.c_str();
+
+	std::string readed2 = readfile("fragment2.shader");
+	const char* fsSource = readed2.c_str();
+
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
+	glCompileShader(vShader);
+
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
+	glCompileShader(fShader);
+
+	Program2 = glCreateProgram();
+	glAttachShader(Program2, vShader);
+	glAttachShader(Program2, fShader);
+	glLinkProgram(Program2);
+
+	int link_ok;
+	glGetProgramiv(Program2, GL_LINK_STATUS, &link_ok);
+	if (!link_ok)
+	{
+		std::cout << "error attach shaders \n";
+		GLchar infoLog[512];
+		GLint size;
+		glGetProgramInfoLog(Program2, 512, &size, infoLog);
+		std::cout << infoLog;
+		return;
+	}
+	Unif2 = glGetUniformLocation(Program2, "objColor");
+	if (Unif2 == -1)
+	{
+		std::cout << "could not bind uniform objColor(2)" << std::endl;
+		checkOpenGLerror();
+		return;
+	}
+	checkOpenGLerror();
 }
 
 //с текстурами по модели ‘онга через вершинный шейдер - интерпол€ци€ √уро
 void initShader3()
 {
-	//todo
+	std::string readed = readfile("vertex3.shader");
+	const char* vsSource = readed.c_str();
+
+	std::string readed2 = readfile("fragment13.shader");
+	const char* fsSource = readed2.c_str();
+
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
+	glCompileShader(vShader);
+
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
+	glCompileShader(fShader);
+
+	Program3 = glCreateProgram();
+	glAttachShader(Program3, vShader);
+	glAttachShader(Program3, fShader);
+	glLinkProgram(Program3);
+
+	int link_ok;
+	glGetProgramiv(Program3, GL_LINK_STATUS, &link_ok);
+	if (!link_ok)
+	{
+		std::cout << "error attach shaders \n";
+		GLchar infoLog[512];
+		GLint size;
+		glGetProgramInfoLog(Program3, 512, &size, infoLog);
+		std::cout << infoLog;
+		return;
+	}
+
+	checkOpenGLerror();
 }
 
 //с текстурами по модели ‘онга через вершинный шейдер - интерпол€ци€ √уро
 void initShader4()
 {
-	//todo	
+	std::string readed = readfile("vertex24.shader");
+	const char* vsSource = readed.c_str();
+
+	std::string readed2 = readfile("fragment4.shader");
+	const char* fsSource = readed2.c_str();
+
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
+	glCompileShader(vShader);
+
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
+	glCompileShader(fShader);
+
+	Program4 = glCreateProgram();
+	glAttachShader(Program4, vShader);
+	glAttachShader(Program4, fShader);
+	glLinkProgram(Program4);
+
+	int link_ok;
+	glGetProgramiv(Program4, GL_LINK_STATUS, &link_ok);
+	if (!link_ok)
+	{
+		std::cout << "error attach shaders \n";
+		GLchar infoLog[512];
+		GLint size;
+		glGetProgramInfoLog(Program4, 512, &size, infoLog);
+		std::cout << infoLog;
+		return;
+	}
+
+	checkOpenGLerror();
 }
 
+void initShaders() {
+	initShader1();
+	initShader2();
+	initShader3();
+	initShader4();
+}
 void freeShader()
 {
 	glUseProgram(0);
 	glDeleteProgram(Program1);
-	//glDeleteProgram(Program2);
-	//glDeleteProgram(Program3);
-	//glDeleteProgram(Program4);
+	glDeleteProgram(Program2);
+	glDeleteProgram(Program3);
+	glDeleteProgram(Program4);
 }
 
 void init(void)
 {
-	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClearColor(1.0, 1.0, 1.0, 1.0);
 
 	glEnable(GL_DEPTH_TEST);
 }
@@ -201,20 +330,91 @@ void recountLightPos()
 	light.z = z;
 }
 
+
+void setTransform()
+{
+	/*
+	uniform struct Transform{
+	mat4 model;
+	mat4 viewProjection;
+	mat3 normal;
+	vec3 viewPosition;
+	} transform;
+	*/
+	GLuint shader_program = Program1;
+	if (mode == 2)
+		shader_program = Program2;
+	else if (mode == 3) shader_program = Program3;
+	else if (mode == 4) shader_program = Program4;
+
+	GLint s_model = glGetUniformLocation(shader_program, "transform.model");
+	GLint s_proj = glGetUniformLocation(shader_program, "transform.viewProjection");
+	GLint s_normal = glGetUniformLocation(shader_program, "transform.normal");
+	GLint s_view = glGetUniformLocation(shader_program, "transform.viewPosition");
+
+	glUniformMatrix4fv(s_model, 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix4fv(s_proj, 1, GL_FALSE, &viewProjection[0][0]);
+	glUniformMatrix3fv(s_normal, 1, GL_FALSE, &normaltr[0][0]);
+	glUniform3fv(s_view, 1, viewPosition);
+}
+
+void setPointLight()
+{
+	/*uniform struct PointLight {
+		vec4 position;
+		vec4 ambient;
+		vec4 diffuse;
+		vec4 specular;
+		vec3 attenuation;
+	} light;*/
+}
+
+void setMaterial()
+{
+	/*uniform struct Material {
+		sampler2D texture;
+		vec4 ambient;
+		vec4 diffuse;
+		vec4 specular;
+		vec4 emission;
+		float shiness;
+	} material;*/
+}
+
 void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-	glEnable(GL_TEXTURE_2D);
-
-	if (mode == 1)
+	
+	model = glm::mat4(1.0f);
+	viewProjection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 100.0f);
+	normaltr = glm::transpose(glm::inverse(model));
+	
+	float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	if (mode == 1 || mode == 2)
 	{
-		glUseProgram(Program1);
-		glBindTexture(GL_TEXTURE_2D, texture1);
+		if (mode == 1)
+		{
+			glUseProgram(Program1);
+			glUniform4fv(Unif1, 1, red);
+		}
+		else
+		{
+			glUseProgram(Program2);
+			glUniform4fv(Unif2, 1, red);
+		}
 	}
-	//todo 2,3,4
-	//...
+	else
+	{
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		if (mode == 3) glUseProgram(Program3);
+		else glUseProgram(Program4);
+	}
 
+	setTransform();
+	setPointLight();
+	setMaterial();
 
 	glBindVertexArray(VAO);
 	glDrawElements(GL_QUADS, indices.size(), GL_UNSIGNED_SHORT, 0);
@@ -222,7 +422,8 @@ void display(void)
 
 	glUseProgram(0);
 	checkOpenGLerror();
-	glDisable(GL_TEXTURE_2D);
+	if (glIsEnabled(GL_TEXTURE_2D))
+		glDisable(GL_TEXTURE_2D);
 	glutSwapBuffers();
 }
 
@@ -274,7 +475,7 @@ int main(int argc, char **argv)
 	}
 	initBuffers();
 	makeTextureImage();
-	initShader1();
+	initShaders();
 	init();
 	recountLightPos();
 

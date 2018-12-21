@@ -1,5 +1,5 @@
 out vec4 color;
-
+uniform vec4 objColor;
 uniform struct PointLight {
 	vec4 position;
 	vec4 ambient;
@@ -7,8 +7,6 @@ uniform struct PointLight {
 	vec4 specular;
 	vec3 attenuation;
 } light;
-
-uniform	sampler2D myTexture;
 
 uniform struct Material {
 	vec4 ambient;
@@ -39,6 +37,5 @@ void main()
 	color += material.diffuse*light.diffuse*Ndot*attenuation;
 	float RdotVpow = max(pow(dot(reflect(-lightDir, normal), viewDir), material.shiness), 0.0);
 	color += material.specular*light.specular*RdotVpow*attenuation;
-
-	color *= texture(myTexture, Vert.texcoord);
+    color *= objColor;
 }
