@@ -30,18 +30,19 @@ GLuint Program1, Program2, Program3, Program4;
 GLint Unif1, Unif2;
 GLuint VBO, VAO, IBO;
 std::vector<GLushort> indices;
-
+GLuint shader_program;
 //transform
 glm::mat4 model, viewProjection;
 glm::mat3 normaltr;
 float viewPosition[]{ 0,0,-5 };
 //light
 float light_angle = 0, light_pos = 5, light_rad = 10;
-glm::vec3 light{ 0, 5, 0 };
-glm::vec4 ambient{ 0.2f,0.2f,0.2f,1.0f };
-glm::vec4 diffuse{ 1.0f,1.0f,1.0f,1.0f };
-glm::vec4 specular{ 1.0f,1.0f,1.0f,1.0f };
-glm::vec3 attenuation{ 1.0f,0.0f,0.0f };
+float light[]{ 0, 5, 0 };
+//glm::vec4 ambient{ 0.2f,0.2f,0.2f,1.0f };
+float ambient[]{ 1,1,1,1 };
+float diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
+float specular[]{ 1.0f,1.0f,1.0f,1.0f };
+float attenuation[]{ 1.0f,0.0f,0.0f };
 
 void makeTextureImage()
 {
@@ -83,7 +84,7 @@ void initShader1()
 	std::string readed = readfile("vertex1.shader");
 	const char* vsSource = readed.c_str();
 
-	std::string readed2 = readfile("fragment13.shader");
+	std::string readed2 = readfile("fragment1.shader");
 	const char* fsSource = readed2.c_str();
 
 	GLuint vShader, fShader;
@@ -104,7 +105,7 @@ void initShader1()
 	glGetProgramiv(Program1, GL_LINK_STATUS, &link_ok);
 	if (!link_ok)
 	{
-		std::cout << "error attach shaders \n";
+		std::cout << "(1)error attach shaders \n";
 		GLchar infoLog[512];
 		GLint size;
 		glGetProgramInfoLog(Program1, 512, &size, infoLog);
@@ -150,7 +151,7 @@ void initShader2()
 	glGetProgramiv(Program2, GL_LINK_STATUS, &link_ok);
 	if (!link_ok)
 	{
-		std::cout << "error attach shaders \n";
+		std::cout << "(2)error attach shaders \n";
 		GLchar infoLog[512];
 		GLint size;
 		glGetProgramInfoLog(Program2, 512, &size, infoLog);
@@ -173,7 +174,7 @@ void initShader3()
 	std::string readed = readfile("vertex3.shader");
 	const char* vsSource = readed.c_str();
 
-	std::string readed2 = readfile("fragment13.shader");
+	std::string readed2 = readfile("fragment3.shader");
 	const char* fsSource = readed2.c_str();
 
 	GLuint vShader, fShader;
@@ -194,7 +195,7 @@ void initShader3()
 	glGetProgramiv(Program3, GL_LINK_STATUS, &link_ok);
 	if (!link_ok)
 	{
-		std::cout << "error attach shaders \n";
+		std::cout << "(3)error attach shaders \n";
 		GLchar infoLog[512];
 		GLint size;
 		glGetProgramInfoLog(Program3, 512, &size, infoLog);
@@ -232,7 +233,7 @@ void initShader4()
 	glGetProgramiv(Program4, GL_LINK_STATUS, &link_ok);
 	if (!link_ok)
 	{
-		std::cout << "error attach shaders \n";
+		std::cout << "(4)error attach shaders \n";
 		GLchar infoLog[512];
 		GLint size;
 		glGetProgramInfoLog(Program4, 512, &size, infoLog);
@@ -248,6 +249,7 @@ void initShaders() {
 	initShader2();
 	initShader3();
 	initShader4();
+	shader_program = Program1;
 }
 void freeShader()
 {
@@ -260,7 +262,7 @@ void freeShader()
 
 void init(void)
 {
-	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 
 	glEnable(GL_DEPTH_TEST);
 }
@@ -319,21 +321,19 @@ void freeBuffers()
 	glDisableVertexAttribArray(2);
 }
 
-
 const double pi = 3.14159265358979323846;
 void recountLightPos()
 {
 	double x = light_rad * glm::cos(light_angle / 180 * pi);
 	double z = light_rad * glm::sin(light_angle / 180 * pi);
-	light.x = x;
-	light.y = light_pos;
-	light.z = z;
+	light[0] = x;
+	light[1] = light_pos;
+	light[2] = z;
 }
-
 
 void setTransform()
 {
-	/*
+	/* in shader:
 	uniform struct Transform{
 	mat4 model;
 	mat4 viewProjection;
@@ -341,12 +341,6 @@ void setTransform()
 	vec3 viewPosition;
 	} transform;
 	*/
-	GLuint shader_program = Program1;
-	if (mode == 2)
-		shader_program = Program2;
-	else if (mode == 3) shader_program = Program3;
-	else if (mode == 4) shader_program = Program4;
-
 	GLint s_model = glGetUniformLocation(shader_program, "transform.model");
 	GLint s_proj = glGetUniformLocation(shader_program, "transform.viewProjection");
 	GLint s_normal = glGetUniformLocation(shader_program, "transform.normal");
@@ -360,18 +354,32 @@ void setTransform()
 
 void setPointLight()
 {
-	/*uniform struct PointLight {
+	/* in shader:
+	uniform struct PointLight {
 		vec4 position;
 		vec4 ambient;
 		vec4 diffuse;
 		vec4 specular;
 		vec3 attenuation;
 	} light;*/
+
+	GLint s_position = glGetUniformLocation(shader_program, "light.position");
+	GLint s_ambient = glGetUniformLocation(shader_program, "light.ambient");
+	GLint s_diffuse = glGetUniformLocation(shader_program, "light.diffuse");
+	GLint s_specular = glGetUniformLocation(shader_program, "light.specular");
+	GLint s_attenuation = glGetUniformLocation(shader_program, "light.attenuation");
+
+	glUniform4fv(s_position, 1, light);
+	glUniform4fv(s_ambient, 1, ambient);
+	glUniform4fv(s_diffuse, 1, diffuse);
+	glUniform4fv(s_specular, 1, specular);
+	glUniform3fv(s_attenuation, 1, attenuation);
 }
 
-void setMaterial()
+void setMaterial(float* m_ambient, float* m_diffuse, float* m_specular, float* m_emission, float m_shiness)
 {
-	/*uniform struct Material {
+	/* shader:
+	uniform struct Material {
 		sampler2D texture;
 		vec4 ambient;
 		vec4 diffuse;
@@ -379,6 +387,18 @@ void setMaterial()
 		vec4 emission;
 		float shiness;
 	} material;*/
+
+	GLint s_ambient = glGetUniformLocation(shader_program, "material.ambient");
+	GLint s_diffuse = glGetUniformLocation(shader_program, "material.diffuse");
+	GLint s_specular = glGetUniformLocation(shader_program, "material.specular");
+	GLint s_emission = glGetUniformLocation(shader_program, "material.emission");
+	GLint s_shiness = glGetUniformLocation(shader_program, "material.shiness");
+
+	glUniform4fv(s_ambient, 1, m_ambient);
+	glUniform4fv(s_diffuse, 1, m_diffuse);
+	glUniform4fv(s_specular, 1, m_specular);
+	glUniform4fv(s_emission, 1, m_emission);
+	glUniform1f(s_shiness, m_shiness);
 }
 
 void display(void)
@@ -387,7 +407,14 @@ void display(void)
 	glLoadIdentity();
 	
 	model = glm::mat4(1.0f);
+	//rotate model here
+	//...
 	viewProjection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 100.0f);
+	viewProjection *= glm::lookAt(
+		glm::vec3(viewPosition[0], viewPosition[1], viewPosition[2]),
+		glm::vec3(0, 0, 0),
+		glm::vec3(0, 1, 0)
+	);
 	normaltr = glm::transpose(glm::inverse(model));
 	
 	float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
@@ -406,15 +433,24 @@ void display(void)
 	}
 	else
 	{
+		GLint Unif_tex = glGetUniformLocation(Program3, "myTexture");
 		glEnable(GL_TEXTURE_2D);
+		//glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
-		if (mode == 3) glUseProgram(Program3);
-		else glUseProgram(Program4);
+		//glUniform1i(Unif_tex, 0);
+
+		checkOpenGLerror();
+		glUseProgram(shader_program);
 	}
 
 	setTransform();
 	setPointLight();
-	setMaterial();
+	float m_ambient[]{0.2f,0.2f,0.2f,1.0f};
+	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
+	float m_specular[]{ 1.0f,1.0f,1.0f,1.0f };
+	float m_emission[]{ 0.0f,0.0f,0.0f,1.0f };
+	float m_shiness = 0;
+	setMaterial(m_ambient, m_diffuse, m_specular, m_emission, m_shiness);
 
 	glBindVertexArray(VAO);
 	glDrawElements(GL_QUADS, indices.size(), GL_UNSIGNED_SHORT, 0);
@@ -433,15 +469,19 @@ void special(int key, int x, int y)
 	switch (key)
 	{
 	case GLUT_KEY_F1: mode = 1;
+		shader_program = Program1;
 		break;
 	case GLUT_KEY_F2:
 		mode = 2;
+		shader_program = Program2;
 		break;
 	case GLUT_KEY_F3:
 		mode = 3;
+		shader_program = Program3;
 		break;
 	case GLUT_KEY_F4:
 		mode = 4;
+		shader_program = Program4;
 		break;
 	case GLUT_KEY_UP: light_pos += 0.5; break;
 	case GLUT_KEY_DOWN: light_pos -= 0.5; break;

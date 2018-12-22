@@ -25,8 +25,6 @@ vec3 viewDir;
 float distance;
 } Vert;
 
-uniform	sampler2D myTexture;
-
 uniform struct Material {
 	vec4 ambient;
 	vec4 diffuse;
@@ -35,6 +33,7 @@ uniform struct Material {
 	float shiness;
 } material;
 
+out vec2 obj_texcoord;
 out vec4 ourColor;
 
 void main()
@@ -58,6 +57,6 @@ void main()
 	ourColor += material.diffuse*light.diffuse*Ndot*attenuation;
 	float RdotVpow = max(pow(dot(reflect(-flightDir, fnormal), viewDir), material.shiness), 0.0);
 	ourColor += material.specular*light.specular*RdotVpow*attenuation;
-
-	ourColor *= texture(myTexture, texcoord);
+   
+    obj_texcoord = texcoord;
 }
