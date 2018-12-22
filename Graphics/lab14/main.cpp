@@ -14,7 +14,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
-
+#include <map>
 #include <SOIL.h>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -29,7 +29,7 @@ int mode = 1;
 GLuint Program1, Program2, Program3, Program4;
 GLint Unif1, Unif2;
 GLuint VBO, VAO, IBO;
-std::vector<GLushort> indices;
+//std::vector<GLushort> indices;
 GLuint shader_program;
 //transform
 glm::mat4 model, viewProjection;
@@ -44,11 +44,21 @@ float diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
 float specular[]{ 1.0f,1.0f,1.0f,1.0f };
 float attenuation[]{ 1.0f,0.0f,0.0f };
 
+//tryig model
+std::vector<glm::vec3> indexed_vertices;
+std::vector<glm::vec2> indexed_uvs;
+std::vector<glm::vec3> indexed_normals;
+std::vector<unsigned short> indices;
+GLuint vertexbuffer;
+GLuint uvbuffer;
+GLuint normalbuffer;
+GLuint elementbuffer;
+
 void makeTextureImage()
 {
 	texture1 = SOIL_load_OGL_texture
 	(
-		"penguin.jpg",
+		"penguin.png",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
@@ -251,6 +261,7 @@ void initShaders() {
 	initShader4();
 	shader_program = Program1;
 }
+
 void freeShader()
 {
 	glUseProgram(0);
@@ -273,9 +284,149 @@ void reshape(int w, int h)
 	glViewport(0, 0, w, h);
 }
 
+struct PackedVertex
+{
+	glm::vec3 position;
+	glm::vec2 uv;
+	glm::vec3 normal;
+	bool operator<(const PackedVertex that) const
+	{
+		return memcmp((void*)this, (void*)&that, sizeof(PackedVertex)) > 0;
+	};
+};
+
+bool getSimilarVertexIndex_fast(
+	PackedVertex & packed,
+	std::map<PackedVertex, unsigned short> & VertexToOutIndex,
+	unsigned short & result
+)
+{
+	std::map<PackedVertex, unsigned short>::iterator it = VertexToOutIndex.find(packed);
+	if (it == VertexToOutIndex.end())
+	{
+		return false;
+	}
+	else
+	{
+		result = it->second;
+		return true;
+	}
+}
+
+void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<glm::vec3> & out_normals)
+{
+	std::vector<unsigned int> vertex_indices, uv_indices, normal_indices;
+	std::vector<glm::vec3> temp_vertices;
+	std::vector<glm::vec2> temp_uvs;
+	std::vector<glm::vec3> temp_normals;
+
+	std::ifstream infile(path);
+	std::string line;
+	while (getline(infile, line))
+	{
+		std::stringstream ss(line);
+		std::string lineHeader;
+		getline(ss, lineHeader, ' ');
+		if (lineHeader == "v")
+		{
+			glm::vec3 vertex;
+			ss >> vertex.x >> vertex.y >> vertex.z;
+			double scale = 8;
+			//if (object == Cat)
+			//{
+				scale = 2;
+			//}
+			vertex.x *= scale;
+			vertex.y *= scale;
+			vertex.z *= scale;
+			temp_vertices.push_back(vertex);
+		}
+		else if (lineHeader == "vt")
+		{
+			glm::vec2 uv;
+			ss >> uv.x >> uv.y;
+			temp_uvs.push_back(uv);
+		}
+		else if (lineHeader == "vn")
+		{
+			glm::vec3 normal;
+			ss >> normal.x >> normal.y >> normal.z;
+			//normal.x *= -1;
+			//normal.y *= -1;
+			//normal.z *= -1;
+			temp_normals.push_back(normal);
+		}
+		else if (lineHeader == "f")
+		{
+			unsigned int vertex_index, uv_index, normal_index;
+			char slash;
+			while (ss >> vertex_index >> slash >> uv_index >> slash >> normal_index)
+			{
+				vertex_indices.push_back(vertex_index);
+				uv_indices.push_back(uv_index);
+				normal_indices.push_back(normal_index);
+			}
+		}
+	}
+
+	// For each vertex of each triangle
+	for (unsigned int i = 0; i < vertex_indices.size(); i++)
+	{
+		unsigned int vertexIndex = vertex_indices[i];
+		glm::vec3 vertex = temp_vertices[vertexIndex - 1];
+		out_vertices.push_back(vertex);
+
+		unsigned int uvIndex = uv_indices[i];
+		glm::vec2 uv = temp_uvs[uvIndex - 1];
+		out_uvs.push_back(uv);
+
+		unsigned int normalIndex = normal_indices[i];
+		glm::vec3 normal = temp_normals[normalIndex - 1];
+		out_normals.push_back(normal);
+	}
+}
+
+void indexVBO(
+	std::vector<glm::vec3> & in_vertices,
+	std::vector<glm::vec2> & in_uvs,
+	std::vector<glm::vec3> & in_normals,
+
+	std::vector<unsigned short> & out_indices,
+	std::vector<glm::vec3> & out_vertices,
+	std::vector<glm::vec2> & out_uvs,
+	std::vector<glm::vec3> & out_normals
+)
+{
+	std::map<PackedVertex, unsigned short> VertexToOutIndex;
+
+	// For each input vertex
+	for (unsigned int i = 0; i < in_vertices.size(); i++)
+	{
+		PackedVertex packed = { in_vertices[i], in_uvs[i], in_normals[i] };
+
+		// Try to find a similar vertex in out_XXXX
+		unsigned short index;
+		bool found = getSimilarVertexIndex_fast(packed, VertexToOutIndex, index);
+
+		if (found)
+		{ // A similar vertex is already in the VBO, use it instead!
+			out_indices.push_back(index);
+		}
+		else
+		{ // If not, it needs to be added in the output data.
+			out_vertices.push_back(in_vertices[i]);
+			out_uvs.push_back(in_uvs[i]);
+			out_normals.push_back(in_normals[i]);
+			unsigned short newindex = (unsigned short)out_vertices.size() - 1;
+			out_indices.push_back(newindex);
+			VertexToOutIndex[packed] = newindex;
+		}
+	}
+}
+
 void initBuffers()
 {
-	GLfloat vertices[] = {
+	/*GLfloat vertices[] = {
 		// Позиции          // normals             // Текстурные координаты
 		 0.5f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,   // Верхний правый
 		 0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,   // Нижний правый
@@ -306,15 +457,65 @@ void initBuffers()
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(2);
 
+	glBindVertexArray(0);*/
+
+	// Read our .obj file
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> normals;
+	loadOBJ("Penguin.obj", vertices, uvs, normals);
+	indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
+
+	//gen
+	glGenBuffers(1, &vertexbuffer);
+	glGenBuffers(1, &uvbuffer);
+	glGenBuffers(1, &normalbuffer);
+	glGenBuffers(1, &elementbuffer);
+	glGenVertexArrays(1, &VAO);
+	
+	glBindVertexArray(VAO);
+	//binding
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
+	//pointers
+	// 1rst attribute buffer : vertices
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+	
+	// 3rd attribute buffer : normals
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+	
+	// 2nd attribute buffer : UVs
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+
+	
+
 	glBindVertexArray(0);
 }
 
 void freeBuffers()
 {
-	glDeleteBuffers(1, &VBO);
+	//glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &VAO);
-	glDeleteBuffers(1, &IBO);
-
+	//glDeleteBuffers(1, &IBO);
+	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &uvbuffer);
+	glDeleteBuffers(1, &normalbuffer);
+	glDeleteBuffers(1, &elementbuffer);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
