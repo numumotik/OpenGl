@@ -34,14 +34,16 @@ GLuint shader_program;
 //transform
 glm::mat4 model, viewProjection;
 glm::mat3 normaltr;
-float viewPosition[]{ 0,0,-5 };
+
+float viewPosition[]{ 0,0,-50 };
+
 //light
-float light_angle = 0, light_pos = 5, light_rad = 10;
+float light_angle = 0, light_pos = 0, light_rad = 50;
 float light[]{ 0, 5, 0 };
 float ambient[]{ 0.2f, 0.2f,0.2f,1.0f };
 //float ambient[]{ 1,1,1,1 };
 float diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
-float specular[]{ 1.0f,1.0f,1.0f,1.0f };
+float specular[]{ 0.0f,0.0f,0.0f,0.0f };
 float attenuation[]{ 1.0f,0.0f,0.0f };
 
 //tryig model
@@ -54,11 +56,19 @@ GLuint uvbuffer;
 GLuint normalbuffer;
 GLuint elementbuffer;
 
+//std::string objname = "Penguin.obj";
+//std::string objtex = "penguin.png";
+//double obj_scale = 40;
+
+std::string objname = "Cat.obj";
+std::string objtex = "cat.jpg";
+double obj_scale = 1;
+
 void makeTextureImage()
 {
 	texture1 = SOIL_load_OGL_texture
 	(
-		"penguin.png",
+		objtex.c_str(),
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
@@ -331,14 +341,14 @@ void loadOBJ(const std::string & path, std::vector<glm::vec3> & out_vertices, st
 		{
 			glm::vec3 vertex;
 			ss >> vertex.x >> vertex.y >> vertex.z;
-			double scale = 8;
+			
 			//if (object == Cat)
 			//{
-				scale = 2;
+				//obj_scale = 2;
 			//}
-			vertex.x *= scale;
-			vertex.y *= scale;
-			vertex.z *= scale;
+			vertex.x *= obj_scale;
+			vertex.y *= obj_scale;
+			vertex.z *= obj_scale;
 			temp_vertices.push_back(vertex);
 		}
 		else if (lineHeader == "vt")
@@ -463,7 +473,7 @@ void initBuffers()
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals;
-	loadOBJ("Penguin.obj", vertices, uvs, normals);
+	loadOBJ(objname.c_str(), vertices, uvs, normals);
 	indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
 
 	//gen
@@ -694,7 +704,6 @@ void special(int key, int x, int y)
 	recountLightPos();
 	glutPostRedisplay();
 }
-
 
 int main(int argc, char **argv)
 {

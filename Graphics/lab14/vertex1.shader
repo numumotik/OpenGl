@@ -2,8 +2,6 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
 layout(location = 2) in vec2 texcoord;
 
-uniform vec4 objColor;
-
 uniform struct Transform {
 mat4 model;
 mat4 viewProjection;
@@ -50,6 +48,4 @@ void main()
 	ourColor += material.diffuse*light.diffuse*Ndot*attenuation;
 	float RdotVpow = max(pow(dot(reflect(-flightDir, fnormal), viewDir), material.shiness), 0.0);
 	ourColor += material.specular*light.specular*RdotVpow*attenuation;
-
-	ourColor *= objColor;
 }
