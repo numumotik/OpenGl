@@ -43,7 +43,7 @@ float light[]{ 0, 5, 0 };
 float ambient[]{ 0.2f, 0.2f,0.2f,1.0f };
 //float ambient[]{ 1,1,1,1 };
 float diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
-float specular[]{ 0.0f,0.0f,0.0f,0.0f };
+float specular[]{ 1.0f,1.0f,1.0f,1.0f };
 float attenuation[]{ 1.0f,0.0f,0.0f };
 
 //tryig model
@@ -56,13 +56,17 @@ GLuint uvbuffer;
 GLuint normalbuffer;
 GLuint elementbuffer;
 
-//std::string objname = "Penguin.obj";
-//std::string objtex = "penguin.png";
-//double obj_scale = 40;
+std::string objname = "Penguin.obj";
+std::string objtex = "penguin.png";
+double obj_scale = 40;
+float rotateX = 0, rotateY = 180, rotateZ = 0;
 
-std::string objname = "Cat.obj";
-std::string objtex = "cat.jpg";
-double obj_scale = 1;
+
+//std::string objname = "Cat.obj";
+//std::string objtex = "cat.jpg";
+//double obj_scale = 0.5;
+//float rotateX = -105, rotateY = 0, rotateZ = 180;
+
 
 void makeTextureImage()
 {
@@ -619,7 +623,10 @@ void display(void)
 	
 	model = glm::mat4(1.0f);
 	//rotate model here
-	//...
+	model = glm::rotate(model, glm::radians(rotateX), glm::vec3(1, 0, 0));
+	model = glm::rotate(model, glm::radians(rotateY), glm::vec3(0, 1, 0));
+	model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
+
 	viewProjection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 100.0f);
 	viewProjection *= glm::lookAt(
 		glm::vec3(viewPosition[0], viewPosition[1], viewPosition[2]),
@@ -656,9 +663,9 @@ void display(void)
 
 	setTransform();
 	setPointLight();
-	float m_ambient[]{0.2f,0.2f,0.2f,1.0f};
+	float m_ambient[]{1.0f,1.0f,1.0f,1.0f};
 	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
-	float m_specular[]{ 1.0f,1.0f,1.0f,1.0f };
+	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
 	float m_emission[]{ 0.0f,0.0f,0.0f,1.0f };
 	float m_shiness = 0;
 	setMaterial(m_ambient, m_diffuse, m_specular, m_emission, m_shiness);
@@ -705,6 +712,34 @@ void special(int key, int x, int y)
 	glutPostRedisplay();
 }
 
+void keyboard(unsigned char key, int x, int y)
+{
+	switch (key)
+	{
+	case '1':
+		rotateX -= 1;
+		break;
+	case '2':
+		rotateX += 1;
+		break;
+	case '3':
+		rotateY -= 1;
+		break;
+	case '4':
+		rotateY += 1;
+		break;
+	case '5':
+		rotateZ -= 1;
+		break;
+	case '6':
+		rotateZ += 1;
+		break;
+	default:
+		break;
+	}
+	glutPostRedisplay();
+}
+
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
@@ -732,6 +767,7 @@ int main(int argc, char **argv)
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutSpecialFunc(special);
+	glutKeyboardFunc(keyboard);
 
 	glutMainLoop();
 
