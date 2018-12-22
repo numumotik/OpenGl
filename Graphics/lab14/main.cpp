@@ -38,8 +38,8 @@ float viewPosition[]{ 0,0,-5 };
 //light
 float light_angle = 0, light_pos = 5, light_rad = 10;
 float light[]{ 0, 5, 0 };
-//glm::vec4 ambient{ 0.2f,0.2f,0.2f,1.0f };
-float ambient[]{ 1,1,1,1 };
+float ambient[]{ 0.2f, 0.2f,0.2f,1.0f };
+//float ambient[]{ 1,1,1,1 };
 float diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
 float specular[]{ 1.0f,1.0f,1.0f,1.0f };
 float attenuation[]{ 1.0f,0.0f,0.0f };
