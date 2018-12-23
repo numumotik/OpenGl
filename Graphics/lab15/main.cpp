@@ -57,15 +57,15 @@ GLuint uvbuffer;
 GLuint normalbuffer;
 GLuint elementbuffer;
 
-//std::string objname = "Penguin.obj";
-//std::string objtex = "penguin.png";
-//double obj_scale = 40;
-//float rotateX = 0, rotateY = 180, rotateZ = 0;
+std::string objname = "Penguin.obj";
+std::string objtex = "penguin.png";
+double obj_scale = 20;
+float rotateX = 0, rotateY = 180, rotateZ = 0;
 
-std::string objname = "Cat.obj";
-std::string objtex = "cat.jpg";
-double obj_scale = 0.5;
-float rotateX = -105, rotateY = 0, rotateZ = 180;
+//std::string objname = "Cat.obj";
+//std::string objtex = "cat.jpg";
+//double obj_scale = 0.5;
+//float rotateX = -105, rotateY = 0, rotateZ = 180;
 
 
 void makeTextureImage()
@@ -143,31 +143,191 @@ void initShader1()
 //2 - Блинна
 void initShader2()
 {
-	
+	std::string readed = readfile("vertex2.shader");
+	const char* vsSource = readed.c_str();
+
+	std::string readed2 = readfile("fragment2.shader");
+	const char* fsSource = readed2.c_str();
+
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
+	glCompileShader(vShader);
+
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
+	glCompileShader(fShader);
+
+	Program2 = glCreateProgram();
+	glAttachShader(Program2, vShader);
+	glAttachShader(Program2, fShader);
+	glLinkProgram(Program2);
+
+	int link_ok;
+	glGetProgramiv(Program2, GL_LINK_STATUS, &link_ok);
+	if (!link_ok)
+	{
+		std::cout << "(2)error attach shaders \n";
+		GLchar infoLog[512];
+		GLint size;
+		glGetProgramInfoLog(Program2, 512, &size, infoLog);
+		std::cout << infoLog;
+		return;
+	}
+
+	checkOpenGLerror();
 }
 
 //3 - Minnaert
 void initShader3()
 {
-	
+	std::string readed = readfile("vertex3.shader");
+	const char* vsSource = readed.c_str();
+
+	std::string readed2 = readfile("fragment3.shader");
+	const char* fsSource = readed2.c_str();
+
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
+	glCompileShader(vShader);
+
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
+	glCompileShader(fShader);
+
+	Program3 = glCreateProgram();
+	glAttachShader(Program3, vShader);
+	glAttachShader(Program3, fShader);
+	glLinkProgram(Program3);
+
+	int link_ok;
+	glGetProgramiv(Program3, GL_LINK_STATUS, &link_ok);
+	if (!link_ok)
+	{
+		std::cout << "(3)error attach shaders \n";
+		GLchar infoLog[512];
+		GLint size;
+		glGetProgramInfoLog(Program3, 512, &size, infoLog);
+		std::cout << infoLog;
+		return;
+	}
+
+	checkOpenGLerror();
 }
 
 //4 - Toon shading
 void initShader4()
 {
-	
+	std::string readed = readfile("vertex4.shader");
+	const char* vsSource = readed.c_str();
+
+	std::string readed2 = readfile("fragment4.shader");
+	const char* fsSource = readed2.c_str();
+
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
+	glCompileShader(vShader);
+
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
+	glCompileShader(fShader);
+
+	Program4 = glCreateProgram();
+	glAttachShader(Program4, vShader);
+	glAttachShader(Program4, fShader);
+	glLinkProgram(Program4);
+
+	int link_ok;
+	glGetProgramiv(Program4, GL_LINK_STATUS, &link_ok);
+	if (!link_ok)
+	{
+		std::cout << "(4)error attach shaders \n";
+		GLchar infoLog[512];
+		GLint size;
+		glGetProgramInfoLog(Program4, 512, &size, infoLog);
+		std::cout << infoLog;
+		return;
+	}
+
+	checkOpenGLerror();
 }
 
 //5 - Ами Гуч
 void initShader5()
 {
+	std::string readed = readfile("vertex5.shader");
+	const char* vsSource = readed.c_str();
 
+	std::string readed2 = readfile("fragment5.shader");
+	const char* fsSource = readed2.c_str();
+
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
+	glCompileShader(vShader);
+
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
+	glCompileShader(fShader);
+
+	Program5 = glCreateProgram();
+	glAttachShader(Program5, vShader);
+	glAttachShader(Program5, fShader);
+	glLinkProgram(Program5);
+
+	int link_ok;
+	glGetProgramiv(Program5, GL_LINK_STATUS, &link_ok);
+	if (!link_ok)
+	{
+		std::cout << "(5)error attach shaders \n";
+		GLchar infoLog[512];
+		GLint size;
+		glGetProgramInfoLog(Program5, 512, &size, infoLog);
+		std::cout << infoLog;
+		return;
+	}
+
+	checkOpenGLerror();
 }
 
 //6 - Rim
 void initShader6()
 {
+	std::string readed = readfile("vertex6.shader");
+	const char* vsSource = readed.c_str();
 
+	std::string readed2 = readfile("fragment6.shader");
+	const char* fsSource = readed2.c_str();
+
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
+	glCompileShader(vShader);
+
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
+	glCompileShader(fShader);
+
+	Program6 = glCreateProgram();
+	glAttachShader(Program6, vShader);
+	glAttachShader(Program6, fShader);
+	glLinkProgram(Program6);
+
+	int link_ok;
+	glGetProgramiv(Program6, GL_LINK_STATUS, &link_ok);
+	if (!link_ok)
+	{
+		std::cout << "(6)error attach shaders \n";
+		GLchar infoLog[512];
+		GLint size;
+		glGetProgramInfoLog(Program6, 512, &size, infoLog);
+		std::cout << infoLog;
+		return;
+	}
+
+	checkOpenGLerror();
 }
 
 void initShaders() {
@@ -524,7 +684,6 @@ void setMaterial(float* m_ambient, float* m_diffuse, float* m_specular, float* m
 	glUniform1f(s_shiness, m_shiness);
 }
 
-
 void Lambert()
 {
 	glUseProgram(shader_program);
@@ -537,6 +696,143 @@ void Lambert()
 	//set point light
 	GLint s_position = glGetUniformLocation(shader_program, "light.position");
 	glUniform4fv(s_position, 1, light);
+	checkOpenGLerror();
+}
+
+void Blinn()
+{
+	glUseProgram(shader_program);
+	float fColor[4] = { 1.0f,0.0f,1.0f,1.0f };
+	GLint color = glGetUniformLocation(shader_program, "diffColor");
+	glUniform4fv(color, 1, fColor);
+	checkOpenGLerror();
+
+	setTransform();
+	//set point light
+	GLint s_position = glGetUniformLocation(shader_program, "light.position");
+	glUniform4fv(s_position, 1, light);
+	checkOpenGLerror();
+
+	//set material
+	GLint s_diffuse = glGetUniformLocation(shader_program, "material.diffuse");
+	GLint s_specular = glGetUniformLocation(shader_program, "material.specular");
+	GLint s_shiness = glGetUniformLocation(shader_program, "material.shiness");
+
+	float m_diffuse[]{ 0.5f,0.0f,0.0f,1.0f };
+	float m_specular[]{ 0.7f,0.7f,0.0f,1.0f };
+	float m_shiness = 30;
+
+	glUniform4fv(s_diffuse, 1, m_diffuse);
+	glUniform4fv(s_specular, 1, m_specular);
+	glUniform1f(s_shiness, m_shiness);
+}
+
+void Minnaert()
+{
+	glUseProgram(shader_program);
+	float fColor[4] = { 1.0f,1.0f,0.0f,1.0f };
+	GLint color = glGetUniformLocation(shader_program, "diffColor");
+	glUniform4fv(color, 1, fColor);
+	checkOpenGLerror();
+
+	setTransform();
+	//set point light
+	GLint s_position = glGetUniformLocation(shader_program, "light.position");
+	glUniform4fv(s_position, 1, light);
+	checkOpenGLerror();
+
+	//set koef
+	float koef = 0.8;
+	GLint s_k = glGetUniformLocation(shader_program, "k");
+	glUniform1f(s_k, koef);
+	checkOpenGLerror();
+}
+
+void Toon()
+{
+	glUseProgram(shader_program);
+	float fColor[4] = { 0.0f,1.0f,0.0f,1.0f };
+	GLint color = glGetUniformLocation(shader_program, "diffColor");
+	glUniform4fv(color, 1, fColor);
+	checkOpenGLerror();
+
+	setTransform();
+	//set point light
+	GLint s_position = glGetUniformLocation(shader_program, "light.position");
+	glUniform4fv(s_position, 1, light);
+	checkOpenGLerror();
+}
+
+void Gooch()
+{
+	glUseProgram(shader_program);
+	float fColor[4] = { 0.75f,0.75f,0.75f,1.0f };
+	GLint color = glGetUniformLocation(shader_program, "diffColor");
+	glUniform4fv(color, 1, fColor);
+	checkOpenGLerror();
+
+	setTransform();
+	//set point light
+	GLint s_position = glGetUniformLocation(shader_program, "light.position");
+	glUniform4fv(s_position, 1, light);
+	checkOpenGLerror();
+
+	//set other colors
+	float oWarm[4] = { 0.6f,0.6f,0.0f, 1.0f };
+	GLint warm = glGetUniformLocation(shader_program, "warm");
+	glUniform4fv(warm, 1, oWarm);
+	checkOpenGLerror();
+
+	float oCold[4] = {0.0f,0.0f,0.6f, 1.0f};
+	GLint cold = glGetUniformLocation(shader_program, "cold");
+	glUniform4fv(cold, 1, oCold);
+	checkOpenGLerror();
+
+	float oDiffWarm = 0.45;
+	GLint dwarm = glGetUniformLocation(shader_program, "diffwarm");
+	glUniform1f(dwarm, oDiffWarm);
+	checkOpenGLerror();
+
+	float oDiffCold = 0.45;
+	GLint dcold = glGetUniformLocation(shader_program, "diffcold");
+	glUniform1f(dcold, oDiffCold);
+	checkOpenGLerror();
+}
+
+void Rim()
+{
+	glUseProgram(shader_program);
+
+	setTransform();
+	//set point light
+	GLint s_position = glGetUniformLocation(shader_program, "light.position");
+	glUniform4fv(s_position, 1, light);
+	checkOpenGLerror();
+
+	//set other colors
+	float diffc[4] = { 0.5f,0.0f,0.0f, 1.0f };
+	GLint diff = glGetUniformLocation(shader_program, "diff");
+	glUniform4fv(diff, 1, diffc);
+	checkOpenGLerror();
+
+	float specc[4] = { 0.7f,0.7f,0.0f, 1.0f };
+	GLint spec = glGetUniformLocation(shader_program, "spec");
+	glUniform4fv(spec, 1, specc);
+	checkOpenGLerror();
+
+	float ospecPow = 30.0f;
+	GLint specpow = glGetUniformLocation(shader_program, "specPow");
+	glUniform1f(specpow, ospecPow);
+	checkOpenGLerror();
+
+	float orimPow = 8.0f;
+	GLint rimpow = glGetUniformLocation(shader_program, "rimPow");
+	glUniform1f(rimpow, orimPow);
+	checkOpenGLerror();
+
+	float obias = 0.3f;
+	GLint bias = glGetUniformLocation(shader_program, "bias");
+	glUniform1f(bias, obias);
 	checkOpenGLerror();
 }
 
@@ -565,9 +861,17 @@ void display(void)
 	{
 	case 1: Lambert();
 		break;
+	case 2: Blinn();
+		break;
+	case 3: Minnaert();
+		break;
+	case 4: Toon();
+		break;
+	case 5: Gooch();
+		break;
+	case 6: Rim();
+		break;
 	}
-			//glUseProgram(Program1);
-			//glUniform4fv(Unif1, 1, red);
 
 	/*setTransform();
 	setPointLight();
