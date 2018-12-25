@@ -57,15 +57,15 @@ GLuint uvbuffer;
 GLuint normalbuffer;
 GLuint elementbuffer;
 
-std::string objname = "Penguin.obj";
-std::string objtex = "penguin.png";
-double obj_scale = 20;
-float rotateX = 0, rotateY = 180, rotateZ = 0;
+//std::string objname = "Penguin.obj";
+//std::string objtex = "penguin.png";
+//double obj_scale = 20;
+//float rotateX = 0, rotateY = 180, rotateZ = 0;
 
-//std::string objname = "Cat.obj";
-//std::string objtex = "cat.jpg";
-//double obj_scale = 0.5;
-//float rotateX = -105, rotateY = 0, rotateZ = 180;
+std::string objname = "Cat.obj";
+std::string objtex = "cat.jpg";
+double obj_scale = 0.5;
+float rotateX = -105, rotateY = 0, rotateZ = 180;
 
 
 void makeTextureImage()
