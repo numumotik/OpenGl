@@ -1015,7 +1015,7 @@ void draw_flowers()
 	model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
 
 	//translate&rotate model
-	model = glm::translate(model, glm::vec3(10, -0.5, 10));
+	model = glm::translate(model, glm::vec3(10, -0.5, -15));
 	//model = glm::rotate(model, glm::radians(rotateX), glm::vec3(1, 0, 0));
 	model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 1, 0));
 	//model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
