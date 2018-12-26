@@ -1,0 +1,8 @@
+newmtl kk_bridge
+Ka 0.972549 0.972549 0.972549
+Kd 0.7843137 0.7843137 0.7843137
+d 1
+Tr 1
+map_Ka kk_bridge.png
+map_Kd kk_bridge.png
+map_d kk_bridge.png

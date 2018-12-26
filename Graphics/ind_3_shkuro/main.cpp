@@ -19,7 +19,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-GLuint texture_bench, texture_ground, texture_flowers, texture_soil, texture_pine, texture_stone, texture_tree;
+GLuint texture_bench, texture_ground, texture_flowers, texture_soil, texture_pine, texture_stone, texture_tree, texture_bridge, texture_water, texture_lantern;
 int width = 0, height = 0;
 GLuint Program_no_t, Program_with_t, Program_floor;
 GLint Unif1, Unif2;
@@ -85,7 +85,7 @@ void makeTextureImage()
 	);
 	texture_ground = SOIL_load_OGL_texture
 	(
-		"models/ground3.jpg",
+		"models/ground2.jpg",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
@@ -93,7 +93,7 @@ void makeTextureImage()
 	texture_flowers = SOIL_load_OGL_texture
 	(
 		//"models/PRIM1P.png",
-		"models/flower2.png",
+		"models/flower4.png",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
@@ -123,6 +123,29 @@ void makeTextureImage()
 	(
 		//"models/green.png",
 		"models/tree_texture.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+	);
+	texture_bridge = SOIL_load_OGL_texture
+	(
+		//"models/ground2.jpg",
+		"models/Chipboard.jpg",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+	);
+	texture_water = SOIL_load_OGL_texture
+	(
+		"models/water3.jpg",
+		//"models/water2.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+	);
+	texture_lantern = SOIL_load_OGL_texture
+	(
+		"models/streetlamp.jpg",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
@@ -477,72 +500,6 @@ void indexVBO(
 	}
 }
 
-GLuint VAO_bench;
-std::vector<unsigned short> indices_bench;
-void init_bench()
-{
-	objname = "models/park_bench/bench_v01.obj";
-	obj_scale = 0.05;
-
-	std::vector<glm::vec3> indexed_vertices;
-	std::vector<glm::vec2> indexed_uvs;
-	std::vector<glm::vec3> indexed_normals;
-	GLuint vertexbuffer;
-	GLuint uvbuffer;
-	GLuint normalbuffer;
-	GLuint elementbuffer;
-
-	// Read our .obj file
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec2> uvs;
-	std::vector<glm::vec3> normals;
-	loadOBJ(objname.c_str(), vertices, uvs, normals);
-	indexVBO(vertices, uvs, normals, indices_bench, indexed_vertices, indexed_uvs, indexed_normals);
-
-	//gen
-	glGenBuffers(1, &vertexbuffer);
-	glGenBuffers(1, &uvbuffer);
-	glGenBuffers(1, &normalbuffer);
-	glGenBuffers(1, &elementbuffer);
-	glGenVertexArrays(1, &VAO_bench);
-
-	glBindVertexArray(VAO_bench);
-	//binding
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-	glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-	glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_bench.size() * sizeof(unsigned short), &indices_bench[0], GL_STATIC_DRAW);
-	//pointers
-	// 1rst attribute buffer : vertices
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	// 2rd attribute buffer : normals
-	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(1);
-
-	// 3nd attribute buffer : UVs
-	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(2);
-
-	glBindVertexArray(0);
-
-	glDeleteBuffers(1, &vertexbuffer);
-	glDeleteBuffers(1, &uvbuffer);
-	glDeleteBuffers(1, &normalbuffer);
-	glDeleteBuffers(1, &elementbuffer);
-}
-
 GLuint VAO_ground;
 std::vector<unsigned short> indices_ground;
 void init_ground()
@@ -550,9 +507,9 @@ void init_ground()
 	GLuint VBO_f, IBO_f;
 	GLfloat vertices[] = {
 		-40.5f,  0.0f, -40.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
-		-40.0f, -0.0f, 40.0f,   0.0f, 1.0f, 0.0f,   0.0f, 5.0f,
-		40.0f, 0.0f, 40.0f,   0.0f, 1.0f, 0.0f,   5.0f, 5.0f,
-		40.0f,  0.0f, -40.0f,   0.0f, 1.0f, 0.0f,   5.0f, 0.0f
+		-40.0f, -0.0f, 40.0f,   0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+		40.0f, 0.0f, 40.0f,   0.0f, 1.0f, 0.0f,   10.0f, 10.0f,
+		40.0f,  0.0f, -40.0f,   0.0f, 1.0f, 0.0f,   10.0f, 0.0f
 	};
 
 	indices_ground.assign({ 0, 1, 2, 3 });
@@ -622,6 +579,246 @@ void init_soil()
 	glBindVertexArray(0);
 	glDeleteBuffers(1, &VBO_f);
 	glDeleteBuffers(1, &IBO_f);
+}
+
+GLuint VAO_water;
+std::vector<unsigned short> indices_water;
+void init_water()
+{
+	GLuint VBO_f, IBO_f;
+	GLfloat vertices[] = {
+		5.0f,  0.0f, 40.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+		-5.0f, 0.0f, 40.0f,   0.0f, 1.0f, 0.0f,   0.0f, 5.0f,
+		-5.0f, 0.0f, 20.0f,   0.0f, 1.0f, 0.0f,   5.0f, 5.0f,
+		5.0f,  0.0f, 20.0f,   0.0f, 1.0f, 0.0f,   5.0f, 0.0f
+	};
+
+
+	indices_water.assign({ 0, 1, 2, 3 });
+
+	glGenBuffers(1, &VBO_f);
+	glGenVertexArrays(1, &VAO_water);
+	glGenBuffers(1, &IBO_f);
+
+	glBindVertexArray(VAO_water);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_f);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO_f);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_soil.size() * sizeof(GLushort), &indices_soil[0], GL_STATIC_DRAW);
+
+	//pos
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	//normals
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+	//texcoords
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
+	glDeleteBuffers(1, &VBO_f);
+	glDeleteBuffers(1, &IBO_f);
+}
+
+GLuint VAO_bench;
+std::vector<unsigned short> indices_bench;
+void init_bench()
+{
+	objname = "models/park_bench/bench_v01.obj";
+	obj_scale = 0.05;
+
+	std::vector<glm::vec3> indexed_vertices;
+	std::vector<glm::vec2> indexed_uvs;
+	std::vector<glm::vec3> indexed_normals;
+	GLuint vertexbuffer;
+	GLuint uvbuffer;
+	GLuint normalbuffer;
+	GLuint elementbuffer;
+
+	// Read our .obj file
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> normals;
+	loadOBJ(objname.c_str(), vertices, uvs, normals);
+	indexVBO(vertices, uvs, normals, indices_bench, indexed_vertices, indexed_uvs, indexed_normals);
+
+	//gen
+	glGenBuffers(1, &vertexbuffer);
+	glGenBuffers(1, &uvbuffer);
+	glGenBuffers(1, &normalbuffer);
+	glGenBuffers(1, &elementbuffer);
+	glGenVertexArrays(1, &VAO_bench);
+
+	glBindVertexArray(VAO_bench);
+	//binding
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_bench.size() * sizeof(unsigned short), &indices_bench[0], GL_STATIC_DRAW);
+	//pointers
+	// 1rst attribute buffer : vertices
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	// 2rd attribute buffer : normals
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+
+	// 3nd attribute buffer : UVs
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
+
+	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &uvbuffer);
+	glDeleteBuffers(1, &normalbuffer);
+	glDeleteBuffers(1, &elementbuffer);
+}
+
+GLuint VAO_lantern;
+std::vector<unsigned short> indices_lantern;
+void init_lantern()
+{
+	objname = "models/streetlamp.obj";
+	obj_scale = 4;
+
+	std::vector<glm::vec3> indexed_vertices;
+	std::vector<glm::vec2> indexed_uvs;
+	std::vector<glm::vec3> indexed_normals;
+	GLuint vertexbuffer;
+	GLuint uvbuffer;
+	GLuint normalbuffer;
+	GLuint elementbuffer;
+
+	// Read our .obj file
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> normals;
+	loadOBJ(objname.c_str(), vertices, uvs, normals);
+	indexVBO(vertices, uvs, normals, indices_lantern, indexed_vertices, indexed_uvs, indexed_normals);
+
+	//gen
+	glGenBuffers(1, &vertexbuffer);
+	glGenBuffers(1, &uvbuffer);
+	glGenBuffers(1, &normalbuffer);
+	glGenBuffers(1, &elementbuffer);
+	glGenVertexArrays(1, &VAO_lantern);
+
+	glBindVertexArray(VAO_lantern);
+	//binding
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_lantern.size() * sizeof(unsigned short), &indices_lantern[0], GL_STATIC_DRAW);
+	//pointers
+	// 1rst attribute buffer : vertices
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	// 2rd attribute buffer : normals
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+
+	// 3nd attribute buffer : UVs
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
+
+	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &uvbuffer);
+	glDeleteBuffers(1, &normalbuffer);
+	glDeleteBuffers(1, &elementbuffer);
+}
+
+
+GLuint VAO_bridge;
+std::vector<unsigned short> indices_bridge;
+void init_bridge()
+{
+	objname = "models/kk_bridge.obj";//"models/Wooden_Bridge.obj";
+	obj_scale = 0.1;
+
+	std::vector<glm::vec3> indexed_vertices;
+	std::vector<glm::vec2> indexed_uvs;
+	std::vector<glm::vec3> indexed_normals;
+	GLuint vertexbuffer;
+	GLuint uvbuffer;
+	GLuint normalbuffer;
+	GLuint elementbuffer;
+
+	// Read our .obj file
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> normals;
+	loadOBJ(objname.c_str(), vertices, uvs, normals);
+	indexVBO(vertices, uvs, normals, indices_bridge, indexed_vertices, indexed_uvs, indexed_normals);
+
+	//gen
+	glGenBuffers(1, &vertexbuffer);
+	glGenBuffers(1, &uvbuffer);
+	glGenBuffers(1, &normalbuffer);
+	glGenBuffers(1, &elementbuffer);
+	glGenVertexArrays(1, &VAO_bridge);
+
+	glBindVertexArray(VAO_bridge);
+	//binding
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_bridge.size() * sizeof(unsigned short), &indices_bridge[0], GL_STATIC_DRAW);
+	//pointers
+	// 1rst attribute buffer : vertices
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	// 2rd attribute buffer : normals
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+
+	// 3nd attribute buffer : UVs
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
+
+	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &uvbuffer);
+	glDeleteBuffers(1, &normalbuffer);
+	glDeleteBuffers(1, &elementbuffer);
 }
 
 GLuint VAO_flowers;
@@ -893,10 +1090,13 @@ void initBuffers()
 	init_bench();
 	init_ground();
 	init_soil();
+	init_water();
 	init_flowers();
 	init_pine();
 	init_stone();
 	init_tree();
+	init_bridge();
+	init_lantern();
 }
 
 void freeBuffers()
@@ -1042,7 +1242,7 @@ void draw_ground()
 
 	setTransform(shader_program);
 	setPointLight(shader_program);
-	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
+	float m_ambient[]{ 0.1f,0.1f,0.1f,1.0f };
 	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
 	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
 	float m_emission[]{ 0.0f,0.0f,0.0f,1.0f };
@@ -1117,6 +1317,45 @@ void draw_soil()
 	glDisable(GL_TEXTURE_2D);
 }
 
+void draw_water()
+{
+	model = glm::mat4(1.0f);
+
+	//rotate scene here
+	model = glm::rotate(model, glm::radians(rotateX), glm::vec3(1, 0, 0));
+	model = glm::rotate(model, glm::radians(rotateY), glm::vec3(0, 1, 0));
+	model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
+
+	model = glm::translate(model, glm::vec3(0, 0.1, 0));
+
+	normaltr = glm::transpose(glm::inverse(model));
+
+	shader_program = Program_with_t;
+	glUseProgram(shader_program);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture_water);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	setTransform(shader_program);
+	setPointLight(shader_program);
+	float m_ambient[]{ 0.3f,0.3f,0.3f,1.0f };
+	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
+	float m_specular[]{ 0.3f,0.3f,0.3f,1.0f };
+	float m_emission[]{ 0.0f,0.0f,0.0f,1.0f };
+	float m_shiness = 0;
+	setMaterial(shader_program, m_ambient, m_diffuse, m_specular, m_emission, m_shiness);
+
+	glBindVertexArray(VAO_water);
+	glDrawElements(GL_QUADS, indices_water.size(), GL_UNSIGNED_SHORT, 0);
+	glBindVertexArray(0);
+
+	glUseProgram(0);
+	glDisable(GL_TEXTURE_2D);
+}
+
 void draw_bench()
 {
 	model = glm::mat4(1.0f);
@@ -1156,6 +1395,84 @@ void draw_bench()
 	glDisable(GL_TEXTURE_2D);
 }
 
+void draw_lantern()
+{
+	model = glm::mat4(1.0f);
+
+	//rotate scene here
+	model = glm::rotate(model, glm::radians(rotateX), glm::vec3(1, 0, 0));
+	model = glm::rotate(model, glm::radians(rotateY), glm::vec3(0, 1, 0));
+	model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
+
+	//translate&rotate model
+	model = glm::translate(model, glm::vec3(-10, 0, -22));
+	//model = glm::rotate(model, glm::radians(rotateX), glm::vec3(1, 0, 0));
+	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+	//model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
+
+	normaltr = glm::transpose(glm::inverse(model));
+
+	shader_program = Program_with_t;
+	glUseProgram(shader_program);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture_lantern);
+
+	setTransform(shader_program);
+	setPointLight(shader_program);
+	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
+	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
+	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
+	float m_emission[]{ 0.0f,0.0f,0.0f,1.0f };
+	float m_shiness = 0;
+	setMaterial(shader_program, m_ambient, m_diffuse, m_specular, m_emission, m_shiness);
+
+	glBindVertexArray(VAO_lantern);
+	glDrawElements(GL_QUADS, indices_lantern.size(), GL_UNSIGNED_SHORT, 0);
+	glBindVertexArray(0);
+
+	glUseProgram(0);
+	glDisable(GL_TEXTURE_2D);
+}
+
+void draw_bridge()
+{
+	model = glm::mat4(1.0f);
+
+	//rotate scene here
+	model = glm::rotate(model, glm::radians(rotateX), glm::vec3(1, 0, 0));
+	model = glm::rotate(model, glm::radians(rotateY), glm::vec3(0, 1, 0));
+	model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
+
+	//translate&rotate model
+	model = glm::translate(model, glm::vec3(0, 0.2, 30));
+	//model = glm::rotate(model, glm::radians(rotateX), glm::vec3(1, 0, 0));
+	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
+	//model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
+
+	normaltr = glm::transpose(glm::inverse(model));
+
+	shader_program = Program_with_t;
+	glUseProgram(shader_program);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture_bridge);
+
+	setTransform(shader_program);
+	setPointLight(shader_program);
+	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
+	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
+	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
+	float m_emission[]{ 0.0f,0.0f,0.0f,1.0f };
+	float m_shiness = 0;
+	setMaterial(shader_program, m_ambient, m_diffuse, m_specular, m_emission, m_shiness);
+
+	glBindVertexArray(VAO_bridge);
+	glDrawElements(GL_QUADS, indices_bridge.size(), GL_UNSIGNED_SHORT, 0);
+	glBindVertexArray(0);
+
+	glUseProgram(0);
+	glDisable(GL_TEXTURE_2D);
+}
+
 void draw_flowers()
 {
 	model = glm::mat4(1.0f);
@@ -1180,11 +1497,43 @@ void draw_flowers()
 
 	setTransform(shader_program);
 	setPointLight(shader_program);
-	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
+	float m_ambient[]{ 0.4f,0.4f,0.4f,1.0f };
 	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
 	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
 	float m_emission[]{ 0.0f,0.0f,0.0f,1.0f };
 	float m_shiness = 0;
+	setMaterial(shader_program, m_ambient, m_diffuse, m_specular, m_emission, m_shiness);
+
+	glBindVertexArray(VAO_flowers);
+	glDrawElements(GL_QUADS, indices_flowers.size(), GL_UNSIGNED_SHORT, 0);
+	glBindVertexArray(0);
+
+	// second flowers
+	model = glm::translate(model, glm::vec3(4, -0.5, 0.5));
+	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+	normaltr = glm::transpose(glm::inverse(model));
+
+	glBindTexture(GL_TEXTURE_2D, texture_flowers);
+
+	setTransform(shader_program);
+	setPointLight(shader_program);
+	setMaterial(shader_program, m_ambient, m_diffuse, m_specular, m_emission, m_shiness);
+
+	glBindVertexArray(VAO_flowers);
+	glDrawElements(GL_QUADS, indices_flowers.size(), GL_UNSIGNED_SHORT, 0);
+	glBindVertexArray(0);
+
+	// third flowers
+	model = glm::translate(model, glm::vec3(4, -0.5, 0));
+	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+	normaltr = glm::transpose(glm::inverse(model));
+
+	glBindTexture(GL_TEXTURE_2D, texture_flowers);
+
+	setTransform(shader_program);
+	setPointLight(shader_program);
 	setMaterial(shader_program, m_ambient, m_diffuse, m_specular, m_emission, m_shiness);
 
 	glBindVertexArray(VAO_flowers);
@@ -1355,11 +1704,14 @@ void display(void)
 
 	draw_ground();
 	draw_soil();
+	draw_water();
 	draw_bench();
 	draw_flowers();
 	draw_pine();
 	draw_stone();
 	draw_tree();
+	draw_bridge();
+	draw_lantern();
 	glutSwapBuffers();
 }
 
