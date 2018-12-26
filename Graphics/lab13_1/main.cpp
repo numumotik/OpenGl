@@ -19,7 +19,7 @@
 
 int width = 0, height = 0;
 
-GLuint Program;
+GLuint Program_no_t;
 GLint Attrib_vertex, Unif_color, Unif_matrix, Unif_proj;
 
 float angle_x = 90.0f, angle_y = 90.0f, angle_z = 90.0f;
@@ -74,13 +74,13 @@ void initShader()
 	glShaderSource(fShader, 1, &fsSource, NULL);
 	glCompileShader(fShader);
 
-	Program = glCreateProgram();
-	glAttachShader(Program, vShader);
-	glAttachShader(Program, fShader);
-	glLinkProgram(Program);
+	Program_no_t = glCreateProgram();
+	glAttachShader(Program_no_t, vShader);
+	glAttachShader(Program_no_t, fShader);
+	glLinkProgram(Program_no_t);
 
 	int link_ok;
-	glGetProgramiv(Program, GL_LINK_STATUS, &link_ok);
+	glGetProgramiv(Program_no_t, GL_LINK_STATUS, &link_ok);
 	if (!link_ok)
 	{
 		std::cout << "error attach shaders \n";
@@ -88,7 +88,7 @@ void initShader()
 	}
 
 	const char* attr_name = "coord";
-	Attrib_vertex = glGetAttribLocation(Program, attr_name);
+	Attrib_vertex = glGetAttribLocation(Program_no_t, attr_name);
 	if (Attrib_vertex == -1)
 	{
 		std::cout << "could not bind attrib " << attr_name << std::endl;
@@ -96,7 +96,7 @@ void initShader()
 	}
 
 	const char* color_name = "color";
-	Unif_color = glGetUniformLocation(Program, color_name);
+	Unif_color = glGetUniformLocation(Program_no_t, color_name);
 	if (Unif_color == -1)
 	{
 		std::cout << "could not bind uniform " << color_name << std::endl;
@@ -104,7 +104,7 @@ void initShader()
 	}
 
 	const char* matrix_name = "matrix";
-	Unif_matrix = glGetUniformLocation(Program, matrix_name);
+	Unif_matrix = glGetUniformLocation(Program_no_t, matrix_name);
 	if (Unif_matrix == -1)
 	{
 		std::cout << "could not bind uniform " << matrix_name << std::endl;
@@ -112,7 +112,7 @@ void initShader()
 	}
 
 	const char* proj_name = "projection";
-	Unif_proj = glGetUniformLocation(Program, proj_name);
+	Unif_proj = glGetUniformLocation(Program_no_t, proj_name);
 	if (Unif_proj == -1)
 	{
 		std::cout << "could not bind uniform " << proj_name << std::endl;
@@ -124,7 +124,7 @@ void initShader()
 void freeShader()
 {
 	glUseProgram(0);
-	glDeleteProgram(Program);
+	glDeleteProgram(Program_no_t);
 }
 
 void init(void)
@@ -175,7 +175,7 @@ void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-	glUseProgram(Program);
+	glUseProgram(Program_no_t);
 	static float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 	glUniform4fv(Unif_color, 1, red);
 	

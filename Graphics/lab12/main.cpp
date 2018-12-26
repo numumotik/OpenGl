@@ -32,7 +32,7 @@ enum Object
 {
     Head, Cat, Penguin, Diablo
 };
-Object object = Diablo;
+Object object = Head;
 
 const double pi = 3.14159265358979323846;
 int light_num = 0;
