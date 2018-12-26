@@ -19,7 +19,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-GLuint texture_bench, texture_ground, texture_flowers, texture_soil, texture_pine;
+GLuint texture_bench, texture_ground, texture_flowers, texture_soil, texture_pine, texture_stone, texture_tree;
 int width = 0, height = 0;
 GLuint Program_no_t, Program_with_t, Program_floor;
 GLint Unif1, Unif2;
@@ -92,7 +92,8 @@ void makeTextureImage()
 	);
 	texture_flowers = SOIL_load_OGL_texture
 	(
-		"models/PRIM1P.png",
+		//"models/PRIM1P.png",
+		"models/flower2.png",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
@@ -107,6 +108,21 @@ void makeTextureImage()
 	texture_pine = SOIL_load_OGL_texture
 	(
 		"models/pine.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+	);
+	texture_stone = SOIL_load_OGL_texture
+	(
+		"models/stone.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+	);
+	texture_tree = SOIL_load_OGL_texture
+	(
+		//"models/green.png",
+		"models/tree_texture.png",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
@@ -613,7 +629,7 @@ std::vector<unsigned short> indices_flowers;
 void init_flowers()
 {
 	objname = "models/PrimroseP.obj";
-	obj_scale = 3;
+	obj_scale = 4;
 
 	std::vector<glm::vec3> indexed_vertices;
 	std::vector<glm::vec2> indexed_uvs;
@@ -679,7 +695,7 @@ std::vector<unsigned short> indices_pine;
 void init_pine()
 {
 	objname = "models/pine.obj";
-	obj_scale = 3;
+	obj_scale = 4;
 
 	std::vector<glm::vec3> indexed_vertices;
 	std::vector<glm::vec2> indexed_uvs;
@@ -694,7 +710,7 @@ void init_pine()
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals;
 	loadOBJ(objname.c_str(), vertices, uvs, normals);
-	indexVBO(vertices, uvs, normals, indices_flowers, indexed_vertices, indexed_uvs, indexed_normals);
+	indexVBO(vertices, uvs, normals, indices_pine, indexed_vertices, indexed_uvs, indexed_normals);
 
 	//gen
 	glGenBuffers(1, &vertexbuffer);
@@ -740,12 +756,147 @@ void init_pine()
 	glDeleteBuffers(1, &elementbuffer);
 }
 
+GLuint VAO_stone;
+std::vector<unsigned short> indices_stone;
+void init_stone()
+{
+	objname = "models/stone.obj";
+	obj_scale = 0.1;
+
+	std::vector<glm::vec3> indexed_vertices;
+	std::vector<glm::vec2> indexed_uvs;
+	std::vector<glm::vec3> indexed_normals;
+	GLuint vertexbuffer;
+	GLuint uvbuffer;
+	GLuint normalbuffer;
+	GLuint elementbuffer;
+
+	// Read our .obj file
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> normals;
+	loadOBJ(objname.c_str(), vertices, uvs, normals);
+	indexVBO(vertices, uvs, normals, indices_stone, indexed_vertices, indexed_uvs, indexed_normals);
+
+	//gen
+	glGenBuffers(1, &vertexbuffer);
+	glGenBuffers(1, &uvbuffer);
+	glGenBuffers(1, &normalbuffer);
+	glGenBuffers(1, &elementbuffer);
+	glGenVertexArrays(1, &VAO_stone);
+
+	glBindVertexArray(VAO_stone);
+	//binding
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_stone.size() * sizeof(unsigned short), &indices_stone[0], GL_STATIC_DRAW);
+	//pointers
+	// 1rst attribute buffer : vertices
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	// 2rd attribute buffer : normals
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+
+	// 3nd attribute buffer : UVs
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
+
+	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &uvbuffer);
+	glDeleteBuffers(1, &normalbuffer);
+	glDeleteBuffers(1, &elementbuffer);
+}
+
+GLuint VAO_tree;
+std::vector<unsigned short> indices_tree;
+void init_tree()
+{
+	objname = "models/lowtree1.obj";
+	obj_scale = 0.04;
+
+	std::vector<glm::vec3> indexed_vertices;
+	std::vector<glm::vec2> indexed_uvs;
+	std::vector<glm::vec3> indexed_normals;
+	GLuint vertexbuffer;
+	GLuint uvbuffer;
+	GLuint normalbuffer;
+	GLuint elementbuffer;
+
+	// Read our .obj file
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> normals;
+	loadOBJ(objname.c_str(), vertices, uvs, normals);
+	indexVBO(vertices, uvs, normals, indices_tree, indexed_vertices, indexed_uvs, indexed_normals);
+
+	//gen
+	glGenBuffers(1, &vertexbuffer);
+	glGenBuffers(1, &uvbuffer);
+	glGenBuffers(1, &normalbuffer);
+	glGenBuffers(1, &elementbuffer);
+	glGenVertexArrays(1, &VAO_tree);
+
+	glBindVertexArray(VAO_tree);
+	//binding
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_tree.size() * sizeof(unsigned short), &indices_tree[0], GL_STATIC_DRAW);
+	//pointers
+	// 1rst attribute buffer : vertices
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	// 2rd attribute buffer : normals
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+
+	// 3nd attribute buffer : UVs
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
+
+	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &uvbuffer);
+	glDeleteBuffers(1, &normalbuffer);
+	glDeleteBuffers(1, &elementbuffer);
+}
+
 void initBuffers()
 {
 	init_bench();
 	init_ground();
 	init_soil();
 	init_flowers();
+	init_pine();
+	init_stone();
+	init_tree();
 }
 
 void freeBuffers()
@@ -1054,10 +1205,8 @@ void draw_pine()
 	model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
 
 	//translate&rotate model
-	model = glm::translate(model, glm::vec3(10, -0.5, 10));
-	//model = glm::rotate(model, glm::radians(rotateX), glm::vec3(1, 0, 0));
+	model = glm::translate(model, glm::vec3(10, 0, 10));
 	model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 1, 0));
-	//model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
 
 	normaltr = glm::transpose(glm::inverse(model));
 
@@ -1077,6 +1226,114 @@ void draw_pine()
 
 	glBindVertexArray(VAO_pine);
 	glDrawElements(GL_QUADS, indices_pine.size(), GL_UNSIGNED_SHORT, 0);
+	glBindVertexArray(0);
+
+	// second pine
+	model = glm::translate(model, glm::vec3(20, 0, 20));
+	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+	normaltr = glm::transpose(glm::inverse(model));
+
+	glBindTexture(GL_TEXTURE_2D, texture_pine);
+
+	setTransform(shader_program);
+	setPointLight(shader_program);
+	setMaterial(shader_program, m_ambient, m_diffuse, m_specular, m_emission, m_shiness);
+
+	glBindVertexArray(VAO_pine);
+	glDrawElements(GL_QUADS, indices_pine.size(), GL_UNSIGNED_SHORT, 0);
+	glBindVertexArray(0);
+
+	// third pine
+	model = glm::translate(model, glm::vec3(5, 0, -20));
+	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+	normaltr = glm::transpose(glm::inverse(model));
+
+	glBindTexture(GL_TEXTURE_2D, texture_pine);
+
+	setTransform(shader_program);
+	setPointLight(shader_program);
+	setMaterial(shader_program, m_ambient, m_diffuse, m_specular, m_emission, m_shiness);
+
+	glBindVertexArray(VAO_pine);
+	glDrawElements(GL_QUADS, indices_pine.size(), GL_UNSIGNED_SHORT, 0);
+	glBindVertexArray(0);
+
+	glUseProgram(0);
+	glDisable(GL_TEXTURE_2D);
+}
+
+void draw_stone()
+{
+	model = glm::mat4(1.0f);
+
+	//rotate scene here
+	model = glm::rotate(model, glm::radians(rotateX), glm::vec3(1, 0, 0));
+	model = glm::rotate(model, glm::radians(rotateY), glm::vec3(0, 1, 0));
+	model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
+
+	//translate&rotate model
+	model = glm::translate(model, glm::vec3(15, 0, -15));
+	//model = glm::rotate(model, glm::radians(rotateX), glm::vec3(1, 0, 0));
+	//model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 1, 0));
+	//model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
+
+	normaltr = glm::transpose(glm::inverse(model));
+
+	shader_program = Program_with_t;
+	glUseProgram(shader_program);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture_stone);
+
+	setTransform(shader_program);
+	setPointLight(shader_program);
+	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
+	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
+	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
+	float m_emission[]{ 0.0f,0.0f,0.0f,1.0f };
+	float m_shiness = 0;
+	setMaterial(shader_program, m_ambient, m_diffuse, m_specular, m_emission, m_shiness);
+
+	glBindVertexArray(VAO_stone);
+	glDrawElements(GL_QUADS, indices_stone.size(), GL_UNSIGNED_SHORT, 0);
+	glBindVertexArray(0);
+
+	glUseProgram(0);
+	glDisable(GL_TEXTURE_2D);
+}
+
+void draw_tree()
+{
+	model = glm::mat4(1.0f);
+
+	//rotate scene here
+	model = glm::rotate(model, glm::radians(rotateX), glm::vec3(1, 0, 0));
+	model = glm::rotate(model, glm::radians(rotateY), glm::vec3(0, 1, 0));
+	model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
+
+	//translate&rotate model
+	model = glm::translate(model, glm::vec3(-10, 0, 7));
+	model = glm::rotate(model, glm::radians(170.0f), glm::vec3(0, 1, 0));
+
+	normaltr = glm::transpose(glm::inverse(model));
+
+	shader_program = Program_with_t;
+	glUseProgram(shader_program);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture_tree);
+
+	setTransform(shader_program);
+	setPointLight(shader_program);
+	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
+	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
+	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
+	float m_emission[]{ 0.0f,0.0f,0.0f,1.0f };
+	float m_shiness = 0;
+	setMaterial(shader_program, m_ambient, m_diffuse, m_specular, m_emission, m_shiness);
+
+	glBindVertexArray(VAO_tree);
+	glDrawElements(GL_QUADS, indices_tree.size(), GL_UNSIGNED_SHORT, 0);
 	glBindVertexArray(0);
 
 	glUseProgram(0);
@@ -1100,6 +1357,9 @@ void display(void)
 	draw_soil();
 	draw_bench();
 	draw_flowers();
+	draw_pine();
+	draw_stone();
+	draw_tree();
 	glutSwapBuffers();
 }
 
