@@ -10,15 +10,21 @@ vec3 viewPosition;
 } transform;
 
 uniform struct PointLight {
+int type;
 vec4 position;
 vec4 ambient;
 vec4 diffuse;
 vec4 specular;
 vec3 attenuation;
+vec3 spotDirection;
+float spotCutoff;
+float spotExponent;
 } light;
+
 
 out Vertex {
 vec2 texcoord;
+vec3 vertPos;
 vec3 normal;
 vec3 lightDir;
 vec3 viewDir;
@@ -30,6 +36,7 @@ void main()
 	vec4 vertex = transform.model * vec4(position, 1.0f);
 	vec4 lightDir = light.position - vertex;
     gl_Position = transform.viewProjection * vertex;
+    Vert.vertPos = position;
 	Vert.texcoord = texcoord;
     Vert.normal = transform.normal * normal;
 	Vert.lightDir = vec3(lightDir);

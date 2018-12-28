@@ -21,43 +21,35 @@
 GLuint texture_fox, texture_couch, texture_cat, texture_wood, texture_cups, 
 			texture_mandarin, texture_flowers;
 
-
+int mode = 0;
 int width = 0, height = 0;
 //2 - без текстур по модели Фонга через фрагментный шейдер
 //4 - с текстурами по модели Фонга через фрагментный шейдер
-int mode = 1;
-GLuint Program2, Program4;
+GLuint Program_phong, Program_phong_fun, Program_textured, Program_fun;
 GLint Unif1, Unif2;
 GLuint shader_program;
 //transform
 glm::mat4 model, viewProjection;
 glm::mat3 normaltr;
 
+float view_angle = -45, view_pos = 50, view_rad = 50;
 float viewPosition[]{ 0,50,-50 };
 
 //light
 float light_angle = 0, light_pos = 50, light_rad = 50;
-float light[]{ 0, 5, 0 };
+float light[]{ 0, 5, 0, 1};
+float dirPos[]{-2, 2, 0, 0};
 float ambient[]{ 0.2f, 0.2f,0.2f,1.0f };
 float diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
 float specular[]{ 1.0f,1.0f,1.0f,1.0f };
 float attenuation[]{ 1.0f,0.0f,0.0f };
 
-
-//std::string objname = "obj/couch.obj";
 std::string objname = "obj/obj.obj";
 
 std::string objtex = "obj/fabric.jpg";
-//std::string objtex = "obj/cups.png";
 double obj_scale = 0.6;
 float rotateX = 0, rotateY = 0, rotateZ = 0;
-
-
-//std::string objname = "Cat.obj";
-//std::string objtex = "cat.jpg";
-//double obj_scale = 0.5;
-//float rotateX = -105, rotateY = 0, rotateZ = 180;
-
+int lightType = 0;
 
 void makeTextureImage()
 {
@@ -139,10 +131,12 @@ std::string readfile(const char* path)
 // без текстур 
 void initShader2()
 {
-	std::string readed = readfile("vertex24.shader");
+	std::string readed = readfile("vertex_phong_gen.shader");
 	const char* vsSource = readed.c_str();
 
-	std::string readed2 = readfile("fragment2.shader");
+	std::string readed2 = readfile("fragment_phong_gen.shader");
+	//std::string readed2 = readfile("fragment_phong_bricks.shader");
+	//std::string readed2 = readfile("fragment_phong_bathroom.shader");
 	const char* fsSource = readed2.c_str();
 
 	GLuint vShader, fShader;
@@ -154,27 +148,58 @@ void initShader2()
 	glShaderSource(fShader, 1, &fsSource, NULL);
 	glCompileShader(fShader);
 
-	Program2 = glCreateProgram();
-	glAttachShader(Program2, vShader);
-	glAttachShader(Program2, fShader);
-	glLinkProgram(Program2);
+	Program_phong = glCreateProgram();
+	glAttachShader(Program_phong, vShader);
+	glAttachShader(Program_phong, fShader);
+	glLinkProgram(Program_phong);
 
 	int link_ok;
-	glGetProgramiv(Program2, GL_LINK_STATUS, &link_ok);
+	glGetProgramiv(Program_phong, GL_LINK_STATUS, &link_ok);
 	if (!link_ok)
 	{
 		std::cout << "(2)error attach shaders \n";
 		GLchar infoLog[512];
 		GLint size;
-		glGetProgramInfoLog(Program2, 512, &size, infoLog);
+		glGetProgramInfoLog(Program_phong, 512, &size, infoLog);
 		std::cout << infoLog;
 		return;
 	}
-	Unif2 = glGetUniformLocation(Program2, "objColor");
-	if (Unif2 == -1)
+	checkOpenGLerror();
+}
+
+void initShader3()
+{
+	std::string readed = readfile("vertex_phong_gen.shader");
+	const char* vsSource = readed.c_str();
+
+	std::string readed2 = readfile("fragment_phong_gen_toon.shader");
+	//std::string readed2 = readfile("fragment_phong_bricks.shader");
+	//std::string readed2 = readfile("fragment_phong_bathroom.shader");
+	const char* fsSource = readed2.c_str();
+
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
+	glCompileShader(vShader);
+
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
+	glCompileShader(fShader);
+
+	Program_phong_fun = glCreateProgram();
+	glAttachShader(Program_phong_fun, vShader);
+	glAttachShader(Program_phong_fun, fShader);
+	glLinkProgram(Program_phong_fun);
+
+	int link_ok;
+	glGetProgramiv(Program_phong_fun, GL_LINK_STATUS, &link_ok);
+	if (!link_ok)
 	{
-		std::cout << "could not bind uniform objColor(2)" << std::endl;
-		checkOpenGLerror();
+		std::cout << "(3)error attach shaders \n";
+		GLchar infoLog[512];
+		GLint size;
+		glGetProgramInfoLog(Program_phong_fun, 512, &size, infoLog);
+		std::cout << infoLog;
 		return;
 	}
 	checkOpenGLerror();
@@ -182,10 +207,10 @@ void initShader2()
 
 void initShader4()
 {
-	std::string readed = readfile("vertex24.shader");
+	std::string readed = readfile("vertex_phong.shader");
 	const char* vsSource = readed.c_str();
 
-	std::string readed2 = readfile("fragment4.shader");
+	std::string readed2 = readfile("fragment_phong_textured.shader");
 	const char* fsSource = readed2.c_str();
 
 	GLuint vShader, fShader;
@@ -197,19 +222,56 @@ void initShader4()
 	glShaderSource(fShader, 1, &fsSource, NULL);
 	glCompileShader(fShader);
 
-	Program4 = glCreateProgram();
-	glAttachShader(Program4, vShader);
-	glAttachShader(Program4, fShader);
-	glLinkProgram(Program4);
+	Program_textured = glCreateProgram();
+	glAttachShader(Program_textured, vShader);
+	glAttachShader(Program_textured, fShader);
+	glLinkProgram(Program_textured);
 
 	int link_ok;
-	glGetProgramiv(Program4, GL_LINK_STATUS, &link_ok);
+	glGetProgramiv(Program_textured, GL_LINK_STATUS, &link_ok);
 	if (!link_ok)
 	{
 		std::cout << "(4)error attach shaders \n";
 		GLchar infoLog[512];
 		GLint size;
-		glGetProgramInfoLog(Program4, 512, &size, infoLog);
+		glGetProgramInfoLog(Program_textured, 512, &size, infoLog);
+		std::cout << infoLog;
+		return;
+	}
+
+	checkOpenGLerror();
+}
+
+void initShader6()
+{
+	std::string readed = readfile("vertex_phong.shader");
+	const char* vsSource = readed.c_str();
+
+	std::string readed2 = readfile("fragment_phong_toon.shader");
+	const char* fsSource = readed2.c_str();
+
+	GLuint vShader, fShader;
+	vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vShader, 1, &vsSource, NULL);
+	glCompileShader(vShader);
+
+	fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fsSource, NULL);
+	glCompileShader(fShader);
+
+	Program_fun = glCreateProgram();
+	glAttachShader(Program_fun, vShader);
+	glAttachShader(Program_fun, fShader);
+	glLinkProgram(Program_fun);
+
+	int link_ok;
+	glGetProgramiv(Program_fun, GL_LINK_STATUS, &link_ok);
+	if (!link_ok)
+	{
+		std::cout << "(6)error attach shaders \n";
+		GLchar infoLog[512];
+		GLint size;
+		glGetProgramInfoLog(Program_fun, 512, &size, infoLog);
 		std::cout << infoLog;
 		return;
 	}
@@ -219,15 +281,17 @@ void initShader4()
 
 void initShaders() {
 	initShader2();
+	initShader3();
 	initShader4();
-	shader_program = Program2;
+	initShader6();
+	shader_program = Program_phong;
 }
 
 void freeShader()
 {
 	glUseProgram(0);
-	glDeleteProgram(Program2);
-	glDeleteProgram(Program4);
+	glDeleteProgram(Program_phong);
+	glDeleteProgram(Program_textured);
 }
 
 void init(void)
@@ -853,6 +917,15 @@ void recountLightPos()
 	light[2] = z;
 }
 
+void recountCameraPos()
+{
+	double x = view_rad * glm::cos(view_angle / 180 * pi);
+	double z = view_rad * glm::sin(view_angle / 180 * pi);
+	viewPosition[0] = x;
+	viewPosition[1] = view_pos;
+	viewPosition[2] = z;
+}
+
 void setTransform(GLuint progr)
 {
 	/* in shader:
@@ -874,28 +947,53 @@ void setTransform(GLuint progr)
 	glUniform3fv(s_view, 1, viewPosition);
 }
 
-void setPointLight(GLuint progr)
+void setLight(GLuint progr)
 {
 	/* in shader:
 	uniform struct PointLight {
+		int type;
 		vec4 position;
 		vec4 ambient;
 		vec4 diffuse;
 		vec4 specular;
 		vec3 attenuation;
+		vec3 spotDirection;
+		float spotCutoff;
+		float spotExponent;
 	} light;*/
 
+	GLint s_type = glGetUniformLocation(progr, "light.type");
 	GLint s_position = glGetUniformLocation(progr, "light.position");
 	GLint s_ambient = glGetUniformLocation(progr, "light.ambient");
 	GLint s_diffuse = glGetUniformLocation(progr, "light.diffuse");
 	GLint s_specular = glGetUniformLocation(progr, "light.specular");
 	GLint s_attenuation = glGetUniformLocation(progr, "light.attenuation");
+	GLint s_spD = glGetUniformLocation(progr, "light.spotDirection");
+	GLint s_spC = glGetUniformLocation(progr, "light.spotCutoff");
+	GLint s_spE = glGetUniformLocation(progr, "light.spotExponent");
 
-	glUniform4fv(s_position, 1, light);
+	glUniform1i(s_type, lightType);
+	if (lightType == 2)
+	{
+		//direction
+		glUniform4fv(s_position, 1, dirPos);
+	}
+	else
+		glUniform4fv(s_position, 1, light);
 	glUniform4fv(s_ambient, 1, ambient);
 	glUniform4fv(s_diffuse, 1, diffuse);
 	glUniform4fv(s_specular, 1, specular);
 	glUniform3fv(s_attenuation, 1, attenuation);
+
+	float spDir[]{ 0,0,0 };
+	spDir[0] = -light[0];
+	spDir[1] = -light[1];
+	spDir[2] = -light[2];
+	float spCutoff = 30.0f;
+	float spExp = 10;
+	glUniform3fv(s_spD, 1, spDir);
+	glUniform1f(s_spC, spCutoff);
+	glUniform1f(s_spE, spExp);
 }
 
 void setMaterial(GLuint progr,float* m_ambient, float* m_diffuse, float* m_specular, float* m_emission, float m_shiness)
@@ -935,13 +1033,16 @@ void drawFloor()
 	normaltr = glm::transpose(glm::inverse(model));
 
 	float red[4] = { 0.7f, 0.7f, 0.7f, 1.0f };
-	shader_program = Program2;
+	if (mode)
+		shader_program = Program_phong_fun;
+	else
+		shader_program = Program_phong;
 	glUseProgram(shader_program);
-	glUniform4fv(Unif2, 1, red);
+	//glUniform4fv(Unif2, 1, red);
 
 	glUseProgram(shader_program);
 	setTransform(shader_program);
-	setPointLight(shader_program);
+	setLight(shader_program);
 	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
 	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
 	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
@@ -956,7 +1057,7 @@ void drawFloor()
 	glUseProgram(0);
 }
 
-void drawCat()
+void drawCat(GLuint progr)
 {
 	model = glm::mat4(1.0f);
 
@@ -973,14 +1074,13 @@ void drawCat()
 
 	normaltr = glm::transpose(glm::inverse(model));
 
-	shader_program = Program4;
+	shader_program = progr;
 	glUseProgram(shader_program);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture_cat);
 
-	glUseProgram(shader_program);
 	setTransform(shader_program);
-	setPointLight(shader_program);
+	setLight(shader_program);
 	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
 	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
 	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
@@ -996,7 +1096,7 @@ void drawCat()
 	glDisable(GL_TEXTURE_2D);
 }
 
-void drawFox()
+void drawFox(GLuint progr)
 {
 	model = glm::mat4(1.0f);
 
@@ -1013,14 +1113,13 @@ void drawFox()
 
 	normaltr = glm::transpose(glm::inverse(model));
 
-	shader_program = Program4;
+	shader_program = progr;
 	glUseProgram(shader_program);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture_fox);
 
-	glUseProgram(shader_program);
 	setTransform(shader_program);
-	setPointLight(shader_program);
+	setLight(shader_program);
 	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
 	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
 	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
@@ -1041,10 +1140,10 @@ void drawFox()
 	glBindTexture(GL_TEXTURE_2D, texture_cups);
 
 	setTransform(shader_program);
-	setPointLight(shader_program);
+	setLight(shader_program);
 	float m_ambient2[]{ 0.2f,0.2f,0.2f,1.0f };
-	float m_diffuse2[]{ 1.0f,1.0f,1.0f,1.0f };
-	float m_specular2[]{ 0.2f,0.2f,0.2f,1.0f };
+	float m_diffuse2[]{ 0.2f,0.2f,0.2f,1.0f };
+	float m_specular2[]{ 0.0f,0.0f,0.0f,1.0f };
 	float m_emission2[]{ 0.0f,0.0f,0.0f,1.0f };
 	float m_shiness2 = 0;
 	setMaterial(shader_program, m_ambient2, m_diffuse2, m_specular2, m_emission2, m_shiness2);
@@ -1057,7 +1156,7 @@ void drawFox()
 	glDisable(GL_TEXTURE_2D);
 }
 
-void drawTable()
+void drawTable(GLuint progr)
 {
 	model = glm::mat4(1.0f);
 
@@ -1074,14 +1173,13 @@ void drawTable()
 
 	normaltr = glm::transpose(glm::inverse(model));
 
-	shader_program = Program4;
+	shader_program = progr;
 	glUseProgram(shader_program);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture_wood);
 
-	glUseProgram(shader_program);
 	setTransform(shader_program);
-	setPointLight(shader_program);
+	setLight(shader_program);
 	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
 	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
 	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
@@ -1097,7 +1195,7 @@ void drawTable()
 	glDisable(GL_TEXTURE_2D);
 }
 
-void drawCups()
+void drawCups(GLuint progr)
 {
 	model = glm::mat4(1.0f);
 
@@ -1109,19 +1207,18 @@ void drawCups()
 	//translate&rotate model
 	model = glm::translate(model, glm::vec3(6, 10.2f, -4));
 	//model = glm::rotate(model, glm::radians(rotateX), glm::vec3(1, 0, 0));
-	//model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 1, 0));
+	model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 1, 0));
 	//model = glm::rotate(model, glm::radians(rotateZ), glm::vec3(0, 0, 1));
 
 	normaltr = glm::transpose(glm::inverse(model));
 
-	shader_program = Program4;
+	shader_program = progr;
 	glUseProgram(shader_program);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture_cups);
 
-	glUseProgram(shader_program);
 	setTransform(shader_program);
-	setPointLight(shader_program);
+	setLight(shader_program);
 	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
 	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
 	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
@@ -1137,7 +1234,7 @@ void drawCups()
 	glDisable(GL_TEXTURE_2D);
 }
 
-void drawCouch()
+void drawCouch(GLuint progr)
 {
 	model = glm::mat4(1.0f);
 
@@ -1154,14 +1251,13 @@ void drawCouch()
 
 	normaltr = glm::transpose(glm::inverse(model));
 
-	shader_program = Program4;
+	shader_program = progr;
 	glUseProgram(shader_program);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture_couch);
 
-	glUseProgram(shader_program);
 	setTransform(shader_program);
-	setPointLight(shader_program);
+	setLight(shader_program);
 	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
 	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
 	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
@@ -1177,7 +1273,7 @@ void drawCouch()
 	glDisable(GL_TEXTURE_2D);
 }
 
-void drawMandarin()
+void drawMandarin(GLuint progr)
 {
 	model = glm::mat4(1.0f);
 
@@ -1191,14 +1287,13 @@ void drawMandarin()
 
 	normaltr = glm::transpose(glm::inverse(model));
 
-	shader_program = Program4;
-	glUseProgram(shader_program);
+	shader_program = progr;
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture_mandarin);
 
 	glUseProgram(shader_program);
 	setTransform(shader_program);
-	setPointLight(shader_program);
+	setLight(shader_program);
 	float m_ambient[]{ 0.2f,0.2f,0.2f,1.0f };
 	float m_diffuse[]{ 1.0f,1.0f,1.0f,1.0f };
 	float m_specular[]{ 0.2f,0.2f,0.2f,1.0f };
@@ -1246,30 +1341,38 @@ void display(void)
 		glm::vec3(0, 1, 0)
 	);
 	
+	
 	drawFloor();
-	drawFox();
-	drawCouch();
-	drawTable();
-	drawCups();
-	drawMandarin();
-	//drawCat();
+    if (mode)
+		shader_program = Program_fun;
+	else
+	shader_program = Program_textured;
+	drawFox(shader_program);
+	drawCouch(shader_program);
+	drawTable(shader_program);
+	drawCups(shader_program);
+	drawMandarin(shader_program);
+	//drawCat(shader_program);
 	glutSwapBuffers();
 }
 
 //Организовать управление источником света (перемещение, вращение источника вокруг центра сцены) с помощью шейдеров
 void special(int key, int x, int y)
 {
-	switch (key)
+	if (lightType != 2)
 	{
-	case GLUT_KEY_UP: light_pos += 0.5; break;
-	case GLUT_KEY_DOWN: light_pos -= 0.5; break;
-	case GLUT_KEY_RIGHT: light_angle -= 3; break;
-	case GLUT_KEY_LEFT: light_angle += 3; break;
-	case GLUT_KEY_PAGE_UP: light_rad -= 0.5; break;
-	case GLUT_KEY_PAGE_DOWN: light_rad += 0.5; break;
+		switch (key)
+		{
+		case GLUT_KEY_UP: light_pos += 0.5; break;
+		case GLUT_KEY_DOWN: light_pos -= 0.5; break;
+		case GLUT_KEY_RIGHT: light_angle -= 3; break;
+		case GLUT_KEY_LEFT: light_angle += 3; break;
+		case GLUT_KEY_PAGE_UP: light_rad -= 0.5; break;
+		case GLUT_KEY_PAGE_DOWN: light_rad += 0.5; break;
+		}
+		recountLightPos();
+		glutPostRedisplay();
 	}
-	recountLightPos();
-	glutPostRedisplay();
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -1294,9 +1397,25 @@ void keyboard(unsigned char key, int x, int y)
 	case '6':
 		rotateZ += 1;
 		break;
-	default:
-		break;
+	case 'w': view_pos += 0.5; break;
+	case 's': view_pos -= 0.5; break;
+	case 'd': view_angle -= 1; break;
+	case 'a': view_angle += 1; break;
+	case 'r': view_rad -= 0.5; break;
+	case 'f': view_rad += 0.5; break;
+	case '=': 
+		if (lightType != 2)
+		light_pos += 0.5; break;
+	case '-': 
+		if (lightType != 2)
+		light_pos -= 0.5; break;
+	case '0': mode = 0; break;
+	case '9': mode = 1; break;
+	case 'z': lightType = 0; break;
+	case 'x': lightType = 1; break;
+	case 'c': lightType = 2; break;
 	}
+	recountCameraPos();
 	glutPostRedisplay();
 }
 
@@ -1323,6 +1442,7 @@ int main(int argc, char **argv)
 	initShaders();
 	init();
 	recountLightPos();
+	recountCameraPos();
 
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);

@@ -1,5 +1,4 @@
 out vec4 color;
-uniform vec4 objColor;
 uniform struct PointLight {
 	vec4 position;
 	vec4 ambient;
@@ -18,6 +17,7 @@ uniform struct Material {
 
 in Vertex{
 vec2 texcoord;
+vec3 vertPos;
 vec3 normal;
 vec3 lightDir;
 vec3 viewDir;
@@ -37,5 +37,24 @@ void main()
 	color += material.diffuse*light.diffuse*Ndot*attenuation;
 	float RdotVpow = max(pow(dot(reflect(-lightDir, normal), viewDir), material.shiness), 0.0);
 	color += material.specular*light.specular*RdotVpow*attenuation;
-    color *= objColor;
+
+    vec4 counted = vec4(1.0, 1.0, 1.0, 1.0);
+   
+   vec3 BrickColor = vec3(0.84, 0.61, 0.55); 
+   vec3 BackColor = vec3(0.55,0.33,0.23); 
+   vec3 BrickSize = vec3(4.0, 2.5, 2.5); 
+   vec3 BrickPct = vec3(0.9, 0.9, 0.9); 
+ 
+   vec3 Lpos = Vert.vertPos / BrickSize;
+   Lpos.y += 0.5;
+   if (fract (Lpos.y * .5)<0.5)
+      Lpos.x +=0.5;
+   if (fract (Lpos.y * .5)<0.5)
+      Lpos.z += 0.5;
+   Lpos = fract (Lpos);
+ 
+    vec3 uses = step (Lpos, BrickPct);
+    counted =vec4( mix (BackColor, BrickColor, uses.x*uses.y*uses.z ) ,1.0);
+    
+   color*=counted;
 }
